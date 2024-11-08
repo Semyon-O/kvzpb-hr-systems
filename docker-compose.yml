@@ -1,0 +1,10 @@
+services:
+  backend:
+    build: kvspb_time_ticket/
+    ports:
+      - "8000:8000"
+
+  bot:
+    build: kvspb_hr_bot_main/
+    depends_on:
+      - backend
