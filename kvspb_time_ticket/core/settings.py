@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-q#=22d(nsmqf_b8v+(nw(xzzfek=s#len0iq*70m@g@x7*(6^c
 DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
-
+CSRF_TRUSTED_ORIGINS = ['http://www.delaem.com']
 
 # Application definition
 
