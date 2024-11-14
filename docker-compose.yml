@@ -4,7 +4,16 @@ services:
     ports:
       - "8000:8000"
 
+    volumes:
+      - db:/usr/src/app/kvspb_time_ticket/db.sqlite3
+
   bot:
     build: kvspb_hr_bot_main/
     depends_on:
       - backend
+    environment:
+      TG_TOKEN: ...
+      AIRTABLE_TOKEN: ...
+
+volumes:
+  db:

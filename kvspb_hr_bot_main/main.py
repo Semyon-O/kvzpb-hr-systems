@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import os
+
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
@@ -13,8 +15,7 @@ from logic import komitet_path, apms_path, declaration_path
 # Включаем логирование, чтобы не пропустить важные сообщения
 logging.basicConfig(level=logging.INFO)
 # Объект бота
-#bot = Bot(token=os.getenv("TG_TOKEN"))
-bot = Bot(token="7138320702:AAEbt3oIPQA911kLBujpuBXnN9iKiu9kUGM")
+bot = Bot(token=os.getenv("TG_TOKEN"))
 # Диспетчер
 dp = Dispatcher()
 

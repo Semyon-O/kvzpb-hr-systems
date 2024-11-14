@@ -22,6 +22,7 @@ class PostAnketaStates(StatesGroup):
     choose_district = State()
     choose_judgment_area = State()
     get_info_about_place = State()
+    register_hr_site = State()
     start_filling_anket = State()
     user_send_docs = State()
     user_collected_all_docs = State()
@@ -38,9 +39,8 @@ class BookingVisitor(StatesGroup):
 async def choose_post_handler(callback: types.CallbackQuery, state: FSMContext):
 
     posts = get_unique_data_by_field("Должность", services.fetch_available_posts)
-    print("38",posts)
 
-    kb = [[types.InlineKeyboardButton(text=post, callback_data=post)] for post in posts]
+    kb = [[types.InlineKeyboardButton(text=post.capitalize(), callback_data=post)] for post in posts]
     markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
 
 
@@ -75,7 +75,6 @@ async def choose_district_judgment_area_handler(callback: types.CallbackQuery, s
     await state.update_data(district=callback.data)
     search = await state.get_data()
     districts = services.fetch_judgment_places(search["post"], search["district"])
-    print("75",districts)
 
     if not districts:
         await callback.message.answer(
@@ -116,8 +115,24 @@ async def choose_area_handler(callback: types.CallbackQuery, state: FSMContext):
         parse_mode=ParseMode.HTML,
         reply_markup=markup
     )
-    await state.set_state(PostAnketaStates.start_filling_anket)
+    await state.set_state(PostAnketaStates.register_hr_site)
 
+@router.callback_query(PostAnketaStates.register_hr_site)
+async def start_instruction(callback: types.CallbackQuery, state: FSMContext):
+    kb = [
+        [types.InlineKeyboardButton(text="Авторизоваться", url="https://hr.gov.spb.ru/vakansii/?")],
+        [types.InlineKeyboardButton(text="Я заполнил анкету на сайте", callback_data="fill")],
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb, resize_keyboard=True)
+
+    await callback.message.answer(
+        "Для создания анкеты в комитет. Нужно зарегистрироваться или авторизоваться на сайте комитета."
+        "\nПройдите пожалуйста, регистрацию или авторизацию. И затем заполните анкету для конкурса.\n"
+        "\nЕсли вы прошли авторизацию и заполнили анкету, нажмите на кнопку '<b>Я заполнил анкету на сайте</b>'",
+        reply_markup=keyboard,
+        parse_mode=ParseMode.HTML,
+    )
+    await state.set_state(PostAnketaStates.start_filling_anket)
 
 @router.callback_query(PostAnketaStates.start_filling_anket)
 async def filling_anket(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
@@ -132,14 +147,14 @@ async def filling_anket(callback: types.CallbackQuery, state: FSMContext, bot: B
     print(await state.get_data())
 
     await callback.message.answer(
-        text="Спасибо, что выбрали этот участок. Для того чтобы вам подать анкету, необходимо заполнить следующие документы:"
+        text="После заполнения анкеты. Вам необходимо заполнить следующие документы:"
     )
 
     documents = [
-        FSInputFile("logic/pattern_documents/Анкета.rtf"),
-        FSInputFile("logic/pattern_documents/Заявление на конкурс К.Р.с.с.doc"),
-        FSInputFile("logic/pattern_documents/Заявление на конкурс К.Р.с.с.з.doc"),
-        FSInputFile("logic/pattern_documents/список на прием через конкурс.doc"),
+        FSInputFile("logic/pattern_documents/Анкета.docx"),
+        FSInputFile("logic/pattern_documents/Заявка на секретаря суда.doc"),
+        FSInputFile("logic/pattern_documents/Заявка на секретаря суд. заседания.doc"),
+        FSInputFile("logic/pattern_documents/Список документов на конкурс.doc"),
     ]
     media_docs = []
     for document_to_send in documents:
@@ -213,8 +228,8 @@ async def choose_time_visit(callback: types.CallbackQuery, state: FSMContext, bo
     markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
 
     documents = [
-        FSInputFile("logic/hiring_docs/прием на должность.doc"),
-        FSInputFile("logic/hiring_docs/список на прием.doc")
+        FSInputFile("logic/hiring_docs/Заявление на прием.doc"),
+        FSInputFile("logic/hiring_docs/Список док-ов на прием.doc")
     ]
     media_docs = []
     for document_to_send in documents:
@@ -222,7 +237,7 @@ async def choose_time_visit(callback: types.CallbackQuery, state: FSMContext, bo
             types.InputMediaDocument(media=document_to_send)
         )
     await callback.message.answer(
-        text="Документы, который нужно заполнить для трудоустройтва",
+        text="Документы, который нужно заполнить для трудоустройства",
     )
     await bot.send_media_group(callback.message.chat.id, media=media_docs)
 
@@ -296,7 +311,6 @@ async def enter_fio(message: types.Message, state: FSMContext, bot: Bot):
                 "taken_time": collected_data["time_ticket"],
             }
         )
-        print(response)
 
         if response.status_code in (404, 400, ):
             raise Exception

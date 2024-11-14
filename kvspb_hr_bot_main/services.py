@@ -3,9 +3,9 @@ import os
 import cachetools
 import requests
 from cachetools import cached
-cache_strategy = cachetools.TTLCache(maxsize=100, ttl=120)
+cache_strategy = cachetools.TTLCache(maxsize=100, ttl=60)
 
-AIRTABLE_TOKEN = os.getenv('AIRTABLE_TOKEN', "Bearer patV6SgqSDVXIICjn.a6ae22b1beddae487ff72eee784e8939e79c5c6352b3309c61821153efcf4ffc")
+AIRTABLE_TOKEN = os.getenv('AIRTABLE_TOKEN', None)
 
 def fetch_available_posts(filters="") -> typing.Dict:
     response = requests.get(
