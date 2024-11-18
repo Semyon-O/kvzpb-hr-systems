@@ -6,7 +6,6 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.enums.parse_mode import ParseMode
 from aiogram.types import FSInputFile
 from aiogram.utils.chat_action import ChatActionSender
-from urllib3.exceptions import RequestError
 
 import texts
 import services
@@ -55,7 +54,7 @@ async def choose_post_handler(callback: types.CallbackQuery, state: FSMContext):
 @router.callback_query(PostAnketaStates.choose_district)
 async def choose_district_handler(callback: types.CallbackQuery, state: FSMContext):
     await state.update_data(post=callback.data)
-    # print(f"Вабрана следующая должность:", callback.data, f"Поиска: {search}")
+
     districts = get_unique_data_by_field("Район", services.fetch_persons_info)
 
     kb = [[types.InlineKeyboardButton(text=district, callback_data=district)] for district in districts]
@@ -71,6 +70,7 @@ async def choose_district_handler(callback: types.CallbackQuery, state: FSMConte
 
 @router.callback_query(PostAnketaStates.choose_judgment_area)
 async def choose_district_judgment_area_handler(callback: types.CallbackQuery, state: FSMContext):
+    
     # search['district'] = callback.data
     await state.update_data(district=callback.data)
     search = await state.get_data()
@@ -323,4 +323,3 @@ async def enter_fio(message: types.Message, state: FSMContext, bot: Bot):
     except Exception as e:
         print(e)
         await message.answer("Приносим свои извинения, но входе обработки данных, возникла ошибка")
-

@@ -8,12 +8,10 @@ services:
       - db:/usr/src/app/kvspb_time_ticket/db.sqlite3
 
   bot:
+    env_file: "bot.env"
     build: kvspb_hr_bot_main/
     depends_on:
       - backend
-    environment:
-      TG_TOKEN: ...
-      AIRTABLE_TOKEN: ...
 
 volumes:
   db:

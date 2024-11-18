@@ -1,5 +1,6 @@
-kvspb_hr_bot_main/__p
+.idea
 
+kvspb_hr_bot_main/.vscode
+kvspb_hr_bot_main/logic/__pycache__
 
-
-kvspb_time_ticket/
+bot.env

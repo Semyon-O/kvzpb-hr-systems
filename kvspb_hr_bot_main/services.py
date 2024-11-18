@@ -21,15 +21,23 @@ def fetch_available_posts(filters="") -> typing.Dict:
 
 def fetch_persons_info(filters="") -> typing.Dict:
 
-    response = requests.get(
-        "https://api.airtable.com/v0/appe3wFxYkIwHibVi/%D0%A1%D1%83%D0%B4%D1%8C%D0%B8?view=Grid%20view&"
-        +filters,
-        headers={
-            "Authorization": AIRTABLE_TOKEN
-        },
-    )
+    records = []
+    offset = ""
+    while True:
 
-    return response.json()["records"]
+        response = requests.get(
+            f"https://api.airtable.com/v0/appe3wFxYkIwHibVi/%D0%A1%D1%83%D0%B4%D1%8C%D0%B8?view=Grid%20view&offset={offset}&"
+            +filters,
+            headers={
+                "Authorization": AIRTABLE_TOKEN
+            },
+        )
+        records.extend(response.json()["records"])
+        if not response.json().get("offset", False):
+            break
+        offset=response.json()["offset"]
+    print(records)
+    return records
 
 @cached(cache=cache_strategy)
 def get_unique_data_by_field(field: "str", table_func) -> typing.List["str"]:
@@ -56,4 +64,5 @@ def fetch_judgment_places(post: "str", area: "str"):
     for record in persons_district:
         unique_persons_district_set_list.add(record["fields"]["Участок"])
 
+    print(list(unique_post_set_list & unique_persons_district_set_list))
     return list(unique_post_set_list & unique_persons_district_set_list)
