@@ -119,9 +119,10 @@ async def choose_area_handler(callback: types.CallbackQuery, state: FSMContext):
 
 @router.callback_query(PostAnketaStates.register_hr_site)
 async def start_instruction(callback: types.CallbackQuery, state: FSMContext):
+    id_judgement_place = callback.data
     kb = [
         [types.InlineKeyboardButton(text="Авторизоваться", url="https://hr.gov.spb.ru/vakansii/?")],
-        [types.InlineKeyboardButton(text="Я заполнил анкету на сайте", callback_data="fill")],
+        [types.InlineKeyboardButton(text="Я заполнил анкету на сайте", callback_data=id_judgement_place)],
     ]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb, resize_keyboard=True)
 
@@ -141,7 +142,7 @@ async def filling_anket(callback: types.CallbackQuery, state: FSMContext, bot: B
 
     await state.update_data(id_judgement_place=id_judgement_place)
 
-    judgment_place = services.fetch_persons_info(filters="{Участок} = " + id_judgement_place)
+    judgment_place = services.fetch_persons_info(filters="filterByFormula={Участок}=" + id_judgement_place)
 
     data = judgment_place[0]['fields']
     print(await state.get_data())
@@ -214,7 +215,7 @@ async def info_about_tender(callback: types.CallbackQuery, state: FSMContext, bo
 
 
 @router.callback_query(PostAnketaStates.user_collected_all_docs)
-async def choose_time_visit(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
+async def filling_work_docs(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
 
     await callback.message.answer(
         text="""
@@ -251,8 +252,9 @@ async def choose_time_visit(callback: types.CallbackQuery, state: FSMContext, bo
     await state.set_state(BookingVisitor.choose_time_visit)
 
 
+
 @router.callback_query(BookingVisitor.choose_time_visit)
-async def choose_time_visit(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
+async def get_free_time_visit(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
 
     state_data = await state.get_data()
 

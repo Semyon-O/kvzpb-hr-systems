@@ -1,5 +1,7 @@
 import typing
 import os
+from pprint import pprint
+
 import cachetools
 import requests
 from cachetools import cached
@@ -19,7 +21,6 @@ def fetch_available_posts(filters="") -> typing.Dict:
 
 def fetch_persons_info(filters="") -> typing.Dict:
 
-
     response = requests.get(
         "https://api.airtable.com/v0/appe3wFxYkIwHibVi/%D0%A1%D1%83%D0%B4%D1%8C%D0%B8?view=Grid%20view&"
         +filters,
@@ -27,6 +28,7 @@ def fetch_persons_info(filters="") -> typing.Dict:
             "Authorization": AIRTABLE_TOKEN
         },
     )
+
     return response.json()["records"]
 
 @cached(cache=cache_strategy)

@@ -15,7 +15,7 @@ from logic import komitet_path, apms_path, declaration_path
 # Включаем логирование, чтобы не пропустить важные сообщения
 logging.basicConfig(level=logging.INFO)
 # Объект бота
-bot = Bot(token=os.getenv("TG_TOKEN"))
+bot = Bot(token="7773100798:AAGN4CQVD9lJu3POAcH6iKVZEEodq9BcBm4")
 # Диспетчер
 dp = Dispatcher()
 
@@ -38,7 +38,6 @@ async def cmd_start(message: types.Message, state: FSMContext):
         "Здравствуйте, это бот по помощи подбору вакансии мировых судей администрации Санкт-Петербург",
         reply_markup=keyboard
     )
-
 
 
 @dp.message(lambda c: c.text == texts.vacancies)
@@ -86,7 +85,6 @@ async def faq(message: types.Message, state: FSMContext):
     )
 
 
-
 @dp.callback_query(lambda call: call.data.split(".")[0] == "get_answer")
 async def answer_on_faq(callback: types.CallbackQuery):
     answer_index = int(callback.data.split(".")[1])
@@ -108,7 +106,6 @@ async def answer_on_faq(callback: types.CallbackQuery):
     await callback.message.answer(
         text=faq_answer[answer_index][1]
     )
-
 
 
 async def main():
