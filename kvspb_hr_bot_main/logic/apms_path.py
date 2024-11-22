@@ -238,7 +238,7 @@ async def filling_work_docs(callback: types.CallbackQuery, state: FSMContext, bo
             types.InputMediaDocument(media=document_to_send)
         )
     await callback.message.answer(
-        text="Документы, который нужно заполнить для трудоустройства",
+        text="Документы, которые нужно заполнить для трудоустройства",
     )
     await bot.send_media_group(callback.message.chat.id, media=media_docs)
 
