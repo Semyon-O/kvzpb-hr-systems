@@ -5,7 +5,7 @@ services:
       - "8000:8000"
 
     volumes:
-      - db:/usr/src/app/kvspb_time_ticket/db.sqlite3
+      - db:/app/
 
   bot:
     env_file: "bot.env"

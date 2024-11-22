@@ -4,7 +4,7 @@ FROM python:3.12.0-alpine
 
 RUN apk add --update bash
 # set work directory
-WORKDIR /usr/src/app
+WORKDIR /app
 
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -12,11 +12,11 @@ ENV PYTHONUNBUFFERED 1
 
 # install dependencies
 RUN pip install --upgrade pip
-COPY ./requirements.txt /usr/src/app
+COPY ./requirements.txt /app
 RUN pip install -r requirements.txt
 
 # copy project
-COPY . /usr/src/app
+COPY . /app
 
 EXPOSE 8000
 
