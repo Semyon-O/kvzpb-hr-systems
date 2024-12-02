@@ -1,6 +1,6 @@
+import logging
 import typing
 import os
-from pprint import pprint
 
 import cachetools
 import requests
@@ -19,28 +19,34 @@ def fetch_available_posts(filters="") -> typing.Dict:
     )
     return response.json()["records"]
 
-def fetch_persons_info(filters="") -> typing.Dict:
-
+def fetch_persons_info(filters=""):
     records = []
-    offset = ""
-    while True:
+    try:
+        offset = ""
+        while True:
 
-        response = requests.get(
-            f"https://api.airtable.com/v0/appe3wFxYkIwHibVi/%D0%A1%D1%83%D0%B4%D1%8C%D0%B8?view=Grid%20view&offset={offset}&"
-            +filters,
-            headers={
-                "Authorization": AIRTABLE_TOKEN
-            },
-        )
-        records.extend(response.json()["records"])
-        if not response.json().get("offset", False):
-            break
-        offset=response.json()["offset"]
-    print(records)
-    return records
+            response = requests.get(
+                f"https://api.airtable.com/v0/appe3wFxYkIwHibVi/%D0%A1%D1%83%D0%B4%D1%8C%D0%B8?view=Grid%20view&offset={offset}&"
+                +filters,
+                headers={
+                    "Authorization": AIRTABLE_TOKEN
+                },
+            )
+            records.extend(response.json()["records"])
+            if not response.json().get("offset", False):
+                break
+            offset=response.json()["offset"]
+        return records
+
+    except Exception as e:
+        logging.exception("Exception while fetching records in 'fetch_persons_info'", exc_info=e, extra={"filters": filters})
+        logging.debug(f"EXTRA ARGS: filter: {filters}, offset: {offset}")
+    finally:
+        return records
 
 @cached(cache=cache_strategy)
 def get_unique_data_by_field(field: "str", table_func) -> typing.List["str"]:
+
     records = table_func()
     unique_set_list = set()
 
@@ -51,18 +57,19 @@ def get_unique_data_by_field(field: "str", table_func) -> typing.List["str"]:
 
 @cached(cache=cache_strategy)
 def fetch_judgment_places(post: "str", area: "str"):
+    try:
+        posts = fetch_available_posts("filterByFormula={Должность} = " + f"'{post}'")
+        persons_district = fetch_persons_info("filterByFormula={Район} = " + f"'{area}'")
 
-    posts = fetch_available_posts("filterByFormula={Должность} = " + f"'{post}'")
-    persons_district = fetch_persons_info("filterByFormula={Район} = " + f"'{area}'")
+        unique_post_set_list = set()
+        unique_persons_district_set_list = set()
 
-    unique_post_set_list = set()
-    unique_persons_district_set_list = set()
+        for record in posts:
+            unique_post_set_list.add(record["fields"]["Участок"])
 
-    for record in posts:
-        unique_post_set_list.add(record["fields"]["Участок"])
+        for record in persons_district:
+            unique_persons_district_set_list.add(record["fields"]["Участок"])
 
-    for record in persons_district:
-        unique_persons_district_set_list.add(record["fields"]["Участок"])
-
-    print(list(unique_post_set_list & unique_persons_district_set_list))
-    return list(unique_post_set_list & unique_persons_district_set_list)
+        return list(unique_post_set_list & unique_persons_district_set_list)
+    except Exception as e:
+        logging.exception("Error in fetch_judgment_places.", exc_info=True, extra={"post": post, "area": area})

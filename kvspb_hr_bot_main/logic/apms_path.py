@@ -1,3 +1,4 @@
+import logging
 
 from aiogram import Router, types, Bot, F
 from aiogram.enums import ChatAction
@@ -5,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.enums.parse_mode import ParseMode
 from aiogram.types import FSInputFile
-from aiogram.utils.chat_action import ChatActionSender
+from aiogram.utils.chat_action import ChatActionSender, logger
 
 import texts
 import services
@@ -13,6 +14,7 @@ from services import get_unique_data_by_field
 import requests
 
 router = Router()
+logger_apms = logging.getLogger()
 
 
 booking_data = {}
@@ -70,7 +72,7 @@ async def choose_district_handler(callback: types.CallbackQuery, state: FSMConte
 
 @router.callback_query(PostAnketaStates.choose_judgment_area)
 async def choose_district_judgment_area_handler(callback: types.CallbackQuery, state: FSMContext):
-    
+
     # search['district'] = callback.data
     await state.update_data(district=callback.data)
     search = await state.get_data()
@@ -138,14 +140,12 @@ async def start_instruction(callback: types.CallbackQuery, state: FSMContext):
 @router.callback_query(PostAnketaStates.start_filling_anket)
 async def filling_anket(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
     id_judgement_place = callback.data
-    print('122', id_judgement_place)
 
     await state.update_data(id_judgement_place=id_judgement_place)
 
     judgment_place = services.fetch_persons_info(filters="filterByFormula={Участок}=" + id_judgement_place)
 
     data = judgment_place[0]['fields']
-    print(await state.get_data())
 
     await callback.message.answer(
         text="После заполнения анкеты. Вам необходимо заполнить следующие документы:"
@@ -193,7 +193,6 @@ async def filling_anket(callback: types.CallbackQuery, state: FSMContext, bot: B
 
 @router.callback_query(PostAnketaStates.user_send_docs)
 async def info_about_tender(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
-    print(await state.get_data())
 
     kb = [
         [types.InlineKeyboardButton(text="Я прошел конкурс", callback_data="data")]
@@ -258,8 +257,6 @@ async def get_free_time_visit(callback: types.CallbackQuery, state: FSMContext, 
 
     state_data = await state.get_data()
 
-
-    print("223",state_data)
     try:
         response = requests.get(
             f"http://backend:8000/api/free-time-windows?email={state_data['email']}"
@@ -278,12 +275,12 @@ async def get_free_time_visit(callback: types.CallbackQuery, state: FSMContext, 
         await state.set_state(BookingVisitor.accept_time_visit)
 
     except ValueError:
-        print("ValueError")
+        logging.info(f"No time windows. Data: {state_data}", exc_info=True)
         await callback.message.answer("Приносим свои извинения, но на данный момент, выбрать время окон нельзя."
                                       "Попробуйте отправить запрос позднее")
         await state.set_state(BookingVisitor.choose_time_visit)
     except Exception as e:
-        print("Exception", e)
+        logging.error(f"Exception occurred from get_free_time_visit. Data {state_data}", exc_info=e)
         await callback.message.answer("Приносим свои извинения, но входе обработки данных, возникла ошибка")
         await state.set_state(BookingVisitor.choose_time_visit)
 
@@ -301,7 +298,6 @@ async def enter_fio(message: types.Message, state: FSMContext, bot: Bot):
     fio = message.text
 
     collected_data = await state.get_data()
-    print("254", collected_data)
 
     try:
         response = requests.post(
@@ -321,5 +317,5 @@ async def enter_fio(message: types.Message, state: FSMContext, bot: Bot):
                              "Ждем вас по адресу:\n"
                              "191060, г Санкт-Петербург,проезд Смольный, д.1, лит.Б, 6 подъезд")
     except Exception as e:
-        print(e)
+        logging.critical("Lost connection with server", exc_info=e)
         await message.answer("Приносим свои извинения, но входе обработки данных, возникла ошибка")

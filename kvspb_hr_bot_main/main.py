@@ -13,7 +13,11 @@ from logic import komitet_path, apms_path, declaration_path
 
 
 # Включаем логирование, чтобы не пропустить важные сообщения
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    filename="bot.log",
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 # Объект бота
 bot = Bot(token=os.getenv("TG_TOKEN"))
 # Диспетчер
