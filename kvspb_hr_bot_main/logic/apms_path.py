@@ -1,4 +1,5 @@
 import logging
+import os
 
 from aiogram import Router, types, Bot
 from aiogram.enums import ChatAction
@@ -14,10 +15,9 @@ from services import get_unique_data_by_field
 import requests
 
 router = Router()
-logger_apms = logging.getLogger()
 
-
-booking_data = {}
+current_file_path = __file__
+directory_path = os.path.dirname(current_file_path)
 
 class PostAnketaStates(StatesGroup):
     choose_district = State()
@@ -40,6 +40,7 @@ class BookingVisitor(StatesGroup):
 
 @router.callback_query(lambda msg: msg.data == texts.administration)
 async def choose_post_handler(callback: types.CallbackQuery, state: FSMContext):
+    logging.info(f"choose_post_handler. user {callback.from_user.id}. data: {callback.data}")
 
     posts = get_unique_data_by_field("Должность", services.fetch_available_posts)
 
@@ -57,6 +58,7 @@ async def choose_post_handler(callback: types.CallbackQuery, state: FSMContext):
 
 @router.callback_query(PostAnketaStates.choose_district)
 async def choose_district_handler(callback: types.CallbackQuery, state: FSMContext):
+
     await state.update_data(post=callback.data)
 
     districts = get_unique_data_by_field("Район", services.fetch_persons_info)
@@ -154,10 +156,10 @@ async def filling_anket(callback: types.CallbackQuery, state: FSMContext, bot: B
     )
 
     documents = [
-        FSInputFile("logic/pattern_documents/Анкета.docx"),
-        FSInputFile("logic/pattern_documents/Заявка на секретаря суда.doc"),
-        FSInputFile("logic/pattern_documents/Заявка на секретаря суд. заседания.doc"),
-        FSInputFile("logic/pattern_documents/Список документов на конкурс.doc"),
+        FSInputFile(directory_path+"/pattern_documents/Анкета.docx"),
+        FSInputFile(directory_path+"/pattern_documents/Заявка на секретаря суда.doc"),
+        FSInputFile(directory_path+"/pattern_documents/Заявка на секретаря суд. заседания.doc"),
+        FSInputFile(directory_path+"/pattern_documents/Список документов на конкурс.doc"),
     ]
     media_docs = []
     for document_to_send in documents:
@@ -230,8 +232,8 @@ async def filling_work_docs(callback: types.CallbackQuery, state: FSMContext, bo
     markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
 
     documents = [
-        FSInputFile("logic/hiring_docs/Заявление на прием.doc"),
-        FSInputFile("logic/hiring_docs/Список док-ов на прием.doc")
+        FSInputFile(directory_path+"/hiring_docs/Заявление на прием.doc"),
+        FSInputFile(directory_path+"/hiring_docs/Список док-ов на прием.doc")
     ]
     media_docs = []
     for document_to_send in documents:
@@ -369,7 +371,6 @@ async def getting_windows_bk(callback: types.CallbackQuery, state: FSMContext, *
 @router.callback_query(BookingVisitor.time_visit_hr)
 async def getting_windows_bk(callback: types.CallbackQuery, state: FSMContext, *args, **kwargs):
     state_data = await state.get_data()
-    print(state_data)
     data = callback.data
 
     try:
@@ -427,7 +428,6 @@ async def getting_windows_bk(callback: types.CallbackQuery, state: FSMContext, *
                 "191060, г. Санкт-Петербург, проезд. Смольный, д. 1, лит. Б, 6 подъезд.",
             )
             await state.set_state(BookingVisitor.time_visit_hr)
-
     except ValueError as e:
         await callback.message.answer(
             text="Извините пожалуйста, но на данный момент пока нету свободных окон. \n"
