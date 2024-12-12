@@ -17,12 +17,17 @@ class TimeOrderAdmin(admin.ModelAdmin):
             if request.user.is_superuser:
                 return orders
             try:
-                print(request.user)
-                timeOrders = models.TimeOrder.objects.filter(taken_time__user=request.user).all()
-                return timeOrders
+                if request.user.has_perm('timeticket.can_see_own_record'):
+                    timeOrders = models.TimeOrder.objects.filter(taken_time__user=request.user).all()
+                    return timeOrders
+
+                if request.user.has_perm('timeticket.view_timeorder'):
+                    return orders
+
             except Exception:
                 return orders.none()
         return orders.none()
+
 
     def get_list_display(self, request):
         return ("person_data", "taken_time", 'id_judgement_place')
@@ -69,8 +74,12 @@ class TimeUserWindowAdmin(admin.ModelAdmin):
             if request.user.is_superuser:
                 return orders
             try:
-                userTimeWindows = models.TimeUserWindow.objects.all().filter(user=request.user)
-                return userTimeWindows
+                if request.user.has_perm('timeticket.can_see_own_record'):
+                    userTimeWindows = models.TimeUserWindow.objects.filter(user=request.user).all()
+                    return userTimeWindows
+
+                if request.user.has_perm('timeticket.view_timeorder'):
+                    return orders
             except Exception as e:
                 print(e)
                 return orders.none()
