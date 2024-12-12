@@ -310,7 +310,7 @@ async def getting_windows_bk(callback: types.CallbackQuery, state: FSMContext, *
         if data.startswith("taken"):
             print(data)
             await callback.message.answer(
-                f"Подтверждаете ли выбранное время: {data}?",
+                f"Подтверждаете ли выбранное время?",
                 reply_markup=types.InlineKeyboardMarkup(
                 inline_keyboard=[
                     [types.InlineKeyboardButton(text='Да, подтверждаю', callback_data=f"accept:{data.split(":")[1]}"),],
@@ -349,7 +349,7 @@ async def getting_windows_bk(callback: types.CallbackQuery, state: FSMContext, *
     except ValueError as e:
         await callback.message.answer(
             text="Извините пожалуйста, но на данный момент пока нету свободных окон. \n"
-                 "Попробуйте запросить информацию позднее, а пока оформите запись к кадровому специалисту"
+                 "В случае отсутствия окон, позвоните пожалуйста в сектор кадрового обеспечения по телефону: +7 (812) 576-6098."
         )
         await callback.message.answer(
             "Выберите удобное окно времени для посещения к кадровому специалисту",
@@ -360,7 +360,6 @@ async def getting_windows_bk(callback: types.CallbackQuery, state: FSMContext, *
             )
         )
         await state.set_state(BookingVisitor.time_visit_hr)
-
     except Exception as e:
         logging.critical("CRITICAL error", exc_info=e)
         await callback.message.answer(
@@ -369,7 +368,7 @@ async def getting_windows_bk(callback: types.CallbackQuery, state: FSMContext, *
 
 
 @router.callback_query(BookingVisitor.time_visit_hr)
-async def getting_windows_bk(callback: types.CallbackQuery, state: FSMContext, *args, **kwargs):
+async def getting_windows_hr(callback: types.CallbackQuery, state: FSMContext, *args, **kwargs):
     state_data = await state.get_data()
     data = callback.data
 
@@ -390,10 +389,8 @@ async def getting_windows_bk(callback: types.CallbackQuery, state: FSMContext, *
                 reply_markup=markup,
             )
         if data.startswith("taken"):
-            print(data)
-            print(callback.message.text)
             await callback.message.answer(
-                f"Подтверждаете ли выбранное время: {data}?",
+                f"Подтверждаете ли выбранное время?",
                 reply_markup=types.InlineKeyboardMarkup(
                     inline_keyboard=[
                         [types.InlineKeyboardButton(text='Да, подтверждаю',
@@ -421,18 +418,20 @@ async def getting_windows_bk(callback: types.CallbackQuery, state: FSMContext, *
                 raise Exception
 
             await callback.message.answer(
-                "Очередь на запись к специалисту  по справкам о доходах и расходах оформлена.")
+                "Очередь на запись к кадровому специалисту оформлена")
             await callback.message.answer(
                 "Спасибо, что записались на прием.\n"
                 "Ждем вас по адресу: \n"
                 "191060, г. Санкт-Петербург, проезд. Смольный, д. 1, лит. Б, 6 подъезд.",
             )
-            await state.set_state(BookingVisitor.time_visit_hr)
+            await state.clear()
+
     except ValueError as e:
         await callback.message.answer(
             text="Извините пожалуйста, но на данный момент пока нету свободных окон. \n"
-                 "Попробуйте запросить информацию позднее, а пока оформите запись к кадровому специалисту"
+                 "Попробуйте запросить информацию позднее повторно нажав на кнопку 'Выбрать окно времени'"
         )
+
         await callback.message.answer(
             "Выберите удобное окно времени для посещения к кадровому специалисту",
             reply_markup=types.InlineKeyboardMarkup(
