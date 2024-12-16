@@ -295,7 +295,7 @@ async def getting_windows_bk(callback: types.CallbackQuery, state: FSMContext, *
     try:
         if data.startswith("choose_time"):
             response = requests.get(
-                f"http://localhost:8000/api/free-time-windows?email={bk_person}"
+                f"http://backend:8000/api/free-time-windows?email={bk_person}"
             )
 
             if response.json() == []:
@@ -324,10 +324,10 @@ async def getting_windows_bk(callback: types.CallbackQuery, state: FSMContext, *
             print("State",state_data)
 
             response = requests.post(
-                f"http://localhost:8000/api/take-time-windows",
+                f"http://backend:8000/api/take-time-windows",
                 data={
                     "person_data": state_data["fio_person"],
-                    "telegram_nickname": callback.message.from_user.username,
+                    "telegram_nickname": callback.from_user.username,
                     "id_judgement_place": int(state_data["id_judgement_place"]),
                     "taken_time": taken_time,
                 }
@@ -375,7 +375,7 @@ async def getting_windows_hr(callback: types.CallbackQuery, state: FSMContext, *
     try:
         if data.startswith("choose_time"):
             response = requests.get(
-                f"http://localhost:8000/api/free-time-windows?email={state_data['email']}"
+                f"http://backend:8000/api/free-time-windows?email={state_data['email']}"
             )
 
             if response.json() == []:
@@ -405,7 +405,7 @@ async def getting_windows_hr(callback: types.CallbackQuery, state: FSMContext, *
             print("State", state_data)
 
             response = requests.post(
-                f"http://localhost:8000/api/take-time-windows",
+                f"http://backend:8000/api/take-time-windows",
                 data={
                     "person_data": state_data["fio_person"],
                     "telegram_nickname": callback.message.from_user.username,
@@ -445,70 +445,3 @@ async def getting_windows_hr(callback: types.CallbackQuery, state: FSMContext, *
         await callback.message.answer(
             "Извините пожалуйста, но входе отправки данных произошла ошибка. Мы занимаемся ее устранением."
         )
-# @router.callback_query(FilterByStateAndData(BookingVisitor.choose_time_visit, ""))
-# async def get_free_time_visit(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
-#
-#     state_data = await state.get_data()
-#
-#     try:
-#         response = requests.get(
-#             f"http://backend:8000/api/free-time-windows?email={state_data['email']}"
-#         )
-#
-#         if response.json() == []:
-#             raise ValueError
-#
-#         kb = [[types.InlineKeyboardButton(text=f"{date['date']} (с {date['time_start']} до {date['time_end']})", callback_data=f"{date['id']}")] for date in response.json()]
-#         markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
-#
-#         await callback.message.answer(
-#             "Выберите доступные даты и время для посещения",
-#             reply_markup=markup
-#         )
-#         await state.set_state(BookingVisitor.accept_time_visit)
-#
-#     except ValueError:
-#         logging.info(f"No time windows. Data: {state_data}", exc_info=True)
-#         await callback.message.answer("Приносим свои извинения, но на данный момент, выбрать время окон нельзя."
-#                                       "Попробуйте отправить запрос позднее")
-#         await state.set_state(BookingVisitor.choose_time_visit)
-#     except Exception as e:
-#         logging.error(f"Exception occurred from get_free_time_visit. Data {state_data}", exc_info=e)
-#         await callback.message.answer("Приносим свои извинения, но входе обработки данных, возникла ошибка")
-#         await state.set_state(BookingVisitor.choose_time_visit)
-#
-#
-# @router.callback_query(BookingVisitor.accept_time_visit)
-# async def choose_time_visit(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
-#     time_ticket = callback.data
-#     await state.update_data(time_ticket=time_ticket)
-#     await callback.message.answer("Отлично. Теперь введите ваше ФИО")
-#     await state.set_state(BookingVisitor.enter_fio)
-#
-#
-# @router.message(F.text,BookingVisitor.enter_fio)
-# async def enter_fio(message: types.Message, state: FSMContext, bot: Bot):
-#     fio = message.text
-#
-#     collected_data = await state.get_data()
-#
-#     try:
-#         response = requests.post(
-#             f"http://backend:8000/api/take-time-windows",
-#             data={
-#                 "person_data": fio,
-#                 "telegram_nickname": message.from_user.username,
-#                 "id_judgement_place": int(collected_data["id_judgement_place"]),
-#                 "taken_time": collected_data["time_ticket"],
-#             }
-#         )
-#
-#         if response.status_code in (404, 400, ):
-#             raise Exception
-#
-#         await message.answer("Ваша очередь оформлена на выбранное вами время.\n\n"
-#                              "Ждем вас по адресу:\n"
-#                              "191060, г Санкт-Петербург,проезд Смольный, д.1, лит.Б, 6 подъезд")
-#     except Exception as e:#
-#        logging.critical("Lost connection with server", exc_info=e)
-#        await message.answer("Приносим свои извинения, но входе обработки данных, возникла ошибка")
