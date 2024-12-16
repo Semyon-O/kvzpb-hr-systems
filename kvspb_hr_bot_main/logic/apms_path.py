@@ -313,8 +313,8 @@ async def getting_windows_bk(callback: types.CallbackQuery, state: FSMContext, *
                 f"Подтверждаете ли выбранное время?",
                 reply_markup=types.InlineKeyboardMarkup(
                 inline_keyboard=[
-                    [types.InlineKeyboardButton(text='Да, подтверждаю', callback_data=f"accept:{data.split(":")[1]}"),],
-                    [types.InlineKeyboardButton(text='Нет, выберу другое', callback_data="choose_time"),],
+                    [types.InlineKeyboardButton(text='Да, подтверждаю', callback_data=f'accept:{data.split(":")[1]}'),],
+                    [types.InlineKeyboardButton(text='Нет, выберу другое', callback_data='choose_time'),],
                 ]
             )
         )
@@ -394,7 +394,7 @@ async def getting_windows_hr(callback: types.CallbackQuery, state: FSMContext, *
                 reply_markup=types.InlineKeyboardMarkup(
                     inline_keyboard=[
                         [types.InlineKeyboardButton(text='Да, подтверждаю',
-                                                    callback_data=f"accept:{data.split(":")[1]}"), ],
+                                                    callback_data=f'accept:{data.split(":")[1]}'), ],
                         [types.InlineKeyboardButton(text='Нет, выберу другое', callback_data="choose_time"), ],
                     ]
                 )
