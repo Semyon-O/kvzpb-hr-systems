@@ -80,7 +80,10 @@ async def choose_district_judgment_area_handler(callback: types.CallbackQuery, s
     # search['district'] = callback.data
     await state.update_data(district=callback.data)
     search = await state.get_data()
-    districts = services.fetch_judgment_places(search["post"], search["district"])
+    post = search["post"]
+    district = search["district"]
+
+    districts = services.fetch_judgment_places(post, district)
 
     if not districts:
         await callback.message.answer(
@@ -112,7 +115,7 @@ async def choose_area_handler(callback: types.CallbackQuery, state: FSMContext):
 
     data = judgment_place[0]['fields']
     await callback.message.answer(
-        text=f"""<b>Информация по участку</b>\n
+        text=f"""<b>Информация по участку №{id_district}</b>\n
         <b>ФИО мирового судьи:</b> \n{data["ФИО судьи"]}
         <b>Телефон:</b> {data["Телефон"]}
         <b>Адрес участка:</b> {data["Адрес"]}
