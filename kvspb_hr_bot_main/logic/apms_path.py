@@ -232,7 +232,7 @@ async def filling_work_docs(callback: types.CallbackQuery, state: FSMContext, bo
     markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
 
     documents = [
-        FSInputFile(directory_path+"/hiring_docs/Заявление на прием.doc"),
+        FSInputFile(directory_path+"/hiring_docs/Заявление на прием.pdf"),
         FSInputFile(directory_path+"/hiring_docs/Список док-ов на прием.doc")
     ]
     media_docs = []
