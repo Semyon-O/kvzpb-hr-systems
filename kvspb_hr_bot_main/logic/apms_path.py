@@ -109,7 +109,8 @@ async def choose_area_handler(callback: types.CallbackQuery, state: FSMContext):
 
 
     kb = [
-        [types.InlineKeyboardButton(text="Подать документы на этот участок", callback_data=str(id_district))]
+        [types.InlineKeyboardButton(text="Подать документы на этот участок", callback_data=str(id_district))],
+        [types.InlineKeyboardButton(text="Выбрать другой участок", callback_data="another")],
     ]
     markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
 
@@ -128,6 +129,31 @@ async def choose_area_handler(callback: types.CallbackQuery, state: FSMContext):
 
 @router.callback_query(PostAnketaStates.register_hr_site)
 async def start_instruction(callback: types.CallbackQuery, state: FSMContext):
+
+    if callback.data == "another":
+        search = await state.get_data()
+        post = search["post"]
+        district = search["district"]
+
+        districts = services.fetch_judgment_places(post, district)
+
+        if not districts:
+            await callback.message.answer(
+                text="Извините, в выбранной области нет доступных участков.")
+            return
+
+        kb = [[types.InlineKeyboardButton(text=f"Участок №{district}", callback_data=str(district))] for district in
+              districts]
+        markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
+
+        await callback.message.answer(
+            text="Выберите пожалуйста в какой участок вы хотите отправить данные?",
+            reply_markup=markup
+        )
+        await state.set_state(PostAnketaStates.get_info_about_place)
+        return
+
+
     id_judgement_place = callback.data
     kb = [
         [types.InlineKeyboardButton(text="Авторизоваться", url="https://hr.gov.spb.ru/vakansii/?")],
