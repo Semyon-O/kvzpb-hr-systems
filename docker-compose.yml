@@ -5,7 +5,7 @@ services:
       - "8000:8000"
 
     volumes:
-      - db:/app/
+      - db:/app/data/database/
 
   bot:
     env_file: "bot.env"

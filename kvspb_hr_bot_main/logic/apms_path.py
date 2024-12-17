@@ -1,6 +1,7 @@
 import logging
+import os
 
-from aiogram import Router, types, Bot, F
+from aiogram import Router, types, Bot
 from aiogram.enums import ChatAction
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
@@ -14,10 +15,9 @@ from services import get_unique_data_by_field
 import requests
 
 router = Router()
-logger_apms = logging.getLogger()
 
-
-booking_data = {}
+current_file_path = __file__
+directory_path = os.path.dirname(current_file_path)
 
 class PostAnketaStates(StatesGroup):
     choose_district = State()
@@ -27,17 +27,20 @@ class PostAnketaStates(StatesGroup):
     start_filling_anket = State()
     user_send_docs = State()
     user_collected_all_docs = State()
+    enter_fio = State()
 
 
 class BookingVisitor(StatesGroup):
-    choose_time_visit = State()
-    accept_time_visit = State()
+    start_booking = State()
     enter_fio = State()
-    enter_id_judge = State()
+    choose_time_visit_bk = State()
+    confirm_windows_bk = State()
+    time_visit_hr = State()
 
 
 @router.callback_query(lambda msg: msg.data == texts.administration)
 async def choose_post_handler(callback: types.CallbackQuery, state: FSMContext):
+    logging.info(f"choose_post_handler. user {callback.from_user.id}. data: {callback.data}")
 
     posts = get_unique_data_by_field("Должность", services.fetch_available_posts)
 
@@ -55,6 +58,7 @@ async def choose_post_handler(callback: types.CallbackQuery, state: FSMContext):
 
 @router.callback_query(PostAnketaStates.choose_district)
 async def choose_district_handler(callback: types.CallbackQuery, state: FSMContext):
+
     await state.update_data(post=callback.data)
 
     districts = get_unique_data_by_field("Район", services.fetch_persons_info)
@@ -76,7 +80,10 @@ async def choose_district_judgment_area_handler(callback: types.CallbackQuery, s
     # search['district'] = callback.data
     await state.update_data(district=callback.data)
     search = await state.get_data()
-    districts = services.fetch_judgment_places(search["post"], search["district"])
+    post = search["post"]
+    district = search["district"]
+
+    districts = services.fetch_judgment_places(post, district)
 
     if not districts:
         await callback.message.answer(
@@ -102,13 +109,14 @@ async def choose_area_handler(callback: types.CallbackQuery, state: FSMContext):
 
 
     kb = [
-        [types.InlineKeyboardButton(text="Подать документы на этот участок", callback_data=str(id_district))]
+        [types.InlineKeyboardButton(text="Подать документы на этот участок", callback_data=str(id_district))],
+        [types.InlineKeyboardButton(text="Выбрать другой участок", callback_data="another")],
     ]
     markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
 
     data = judgment_place[0]['fields']
     await callback.message.answer(
-        text=f"""<b>Информация по участку</b>\n
+        text=f"""<b>Информация по участку №{id_district}</b>\n
         <b>ФИО мирового судьи:</b> \n{data["ФИО судьи"]}
         <b>Телефон:</b> {data["Телефон"]}
         <b>Адрес участка:</b> {data["Адрес"]}
@@ -121,6 +129,31 @@ async def choose_area_handler(callback: types.CallbackQuery, state: FSMContext):
 
 @router.callback_query(PostAnketaStates.register_hr_site)
 async def start_instruction(callback: types.CallbackQuery, state: FSMContext):
+
+    if callback.data == "another":
+        search = await state.get_data()
+        post = search["post"]
+        district = search["district"]
+
+        districts = services.fetch_judgment_places(post, district)
+
+        if not districts:
+            await callback.message.answer(
+                text="Извините, в выбранной области нет доступных участков.")
+            return
+
+        kb = [[types.InlineKeyboardButton(text=f"Участок №{district}", callback_data=str(district))] for district in
+              districts]
+        markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
+
+        await callback.message.answer(
+            text="Выберите пожалуйста в какой участок вы хотите отправить данные?",
+            reply_markup=markup
+        )
+        await state.set_state(PostAnketaStates.get_info_about_place)
+        return
+
+
     id_judgement_place = callback.data
     kb = [
         [types.InlineKeyboardButton(text="Авторизоваться", url="https://hr.gov.spb.ru/vakansii/?")],
@@ -152,10 +185,10 @@ async def filling_anket(callback: types.CallbackQuery, state: FSMContext, bot: B
     )
 
     documents = [
-        FSInputFile("logic/pattern_documents/Анкета.docx"),
-        FSInputFile("logic/pattern_documents/Заявка на секретаря суда.doc"),
-        FSInputFile("logic/pattern_documents/Заявка на секретаря суд. заседания.doc"),
-        FSInputFile("logic/pattern_documents/Список документов на конкурс.doc"),
+        FSInputFile(directory_path+"/pattern_documents/Анкета.docx"),
+        FSInputFile(directory_path+"/pattern_documents/Заявка на секретаря суда.doc"),
+        FSInputFile(directory_path+"/pattern_documents/Заявка на секретаря суд. заседания.doc"),
+        FSInputFile(directory_path+"/pattern_documents/Список документов на конкурс.doc"),
     ]
     media_docs = []
     for document_to_send in documents:
@@ -228,8 +261,8 @@ async def filling_work_docs(callback: types.CallbackQuery, state: FSMContext, bo
     markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
 
     documents = [
-        FSInputFile("logic/hiring_docs/Заявление на прием.pdf"),
-        FSInputFile("logic/hiring_docs/Список док-ов на прием.doc")
+        FSInputFile(directory_path+"/hiring_docs/Заявление на прием.pdf"),
+        FSInputFile(directory_path+"/hiring_docs/Список док-ов на прием.doc")
     ]
     media_docs = []
     for document_to_send in documents:
@@ -248,74 +281,196 @@ async def filling_work_docs(callback: types.CallbackQuery, state: FSMContext, bo
 
     )
 
-    await state.set_state(BookingVisitor.choose_time_visit)
+    await state.set_state(BookingVisitor.start_booking)
 
 
-
-@router.callback_query(BookingVisitor.choose_time_visit)
-async def get_free_time_visit(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
-
-    state_data = await state.get_data()
-
-    try:
-        response = requests.get(
-            f"http://backend:8000/api/free-time-windows?email={state_data['email']}"
-        )
-
-        if response.json() == []:
-            raise ValueError
-
-        kb = [[types.InlineKeyboardButton(text=f"{date['date']} (с {date['time_start']} до {date['time_end']})", callback_data=f"{date['id']}")] for date in response.json()]
-        markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
-
-        await callback.message.answer(
-            "Выберите доступные даты и время для посещения",
-            reply_markup=markup
-        )
-        await state.set_state(BookingVisitor.accept_time_visit)
-
-    except ValueError:
-        logging.info(f"No time windows. Data: {state_data}", exc_info=True)
-        await callback.message.answer("Приносим свои извинения, но на данный момент, выбрать время окон нельзя."
-                                      "Попробуйте отправить запрос позднее")
-        await state.set_state(BookingVisitor.choose_time_visit)
-    except Exception as e:
-        logging.error(f"Exception occurred from get_free_time_visit. Data {state_data}", exc_info=e)
-        await callback.message.answer("Приносим свои извинения, но входе обработки данных, возникла ошибка")
-        await state.set_state(BookingVisitor.choose_time_visit)
-
-
-@router.callback_query(BookingVisitor.accept_time_visit)
-async def choose_time_visit(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
-    time_ticket = callback.data
-    await state.update_data(time_ticket=time_ticket)
-    await callback.message.answer("Отлично. Теперь введите ваше ФИО")
+@router.callback_query(BookingVisitor.start_booking)
+async def start_booking(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
+    await callback.message.answer(
+        "Отлично. Теперь вам нужно выбрать удобные окна времени посещения:\n"
+        "- К специалисту по заполнению справки о доходах и расходах\n"
+        "- К кадровому специалисту для трудоустройства \n"
+    )
+    await callback.message.answer(
+        "Для начала выбора окон времени напишите полностью Вашу Фамилию, Имя, Отчество"
+    )
     await state.set_state(BookingVisitor.enter_fio)
 
 
-@router.message(F.text,BookingVisitor.enter_fio)
-async def enter_fio(message: types.Message, state: FSMContext, bot: Bot):
-    fio = message.text
+@router.message(BookingVisitor.enter_fio)
+async def enter_fio_and_getting_windows_bk(message: types.Message, state: FSMContext, *args, **kwargs):
 
-    collected_data = await state.get_data()
+    fio_person = message.text
+
+    await state.update_data(fio_person=fio_person)
+
+    kb =types.InlineKeyboardMarkup(
+        inline_keyboard=[
+            [types.InlineKeyboardButton(text='Выбрать окно времени', callback_data="choose_time"),],
+        ]
+    )
+    await message.answer("Теперь вам нужно выбрать время записи к специалисту по справке БК", reply_markup=kb)
+    await state.set_state(BookingVisitor.choose_time_visit_bk)
+
+
+
+@router.callback_query(BookingVisitor.choose_time_visit_bk)
+async def getting_windows_bk(callback: types.CallbackQuery, state: FSMContext, *args, **kwargs):
+    state_data = await state.get_data()
+
+    data = callback.data
+    bk_person = "a.starinskaya@zakon.gov.spb.ru"
 
     try:
-        response = requests.post(
-            f"http://backend:8000/api/take-time-windows",
-            data={
-                "person_data": fio,
-                "telegram_nickname": message.from_user.username,
-                "id_judgement_place": int(collected_data["id_judgement_place"]),
-                "taken_time": collected_data["time_ticket"],
-            }
+        if data.startswith("choose_time"):
+            response = requests.get(
+                f"http://backend:8000/api/free-time-windows?email={bk_person}"
+            )
+
+            if response.json() == []:
+                raise ValueError
+
+            kb = [[types.InlineKeyboardButton(text=f"{date['date']} (с {date['time_start']} до {date['time_end']})", callback_data=f"taken:{date['id']}")] for date in response.json()]
+            markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
+            await callback.message.answer(
+                text="Выберите пожалуйста удобные вам окна",
+                reply_markup=markup,
+            )
+        if data.startswith("taken"):
+            print(data)
+            await callback.message.answer(
+                f"Подтверждаете ли выбранное время?",
+                reply_markup=types.InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [types.InlineKeyboardButton(text='Да, подтверждаю', callback_data=f'accept:{data.split(":")[1]}'),],
+                    [types.InlineKeyboardButton(text='Нет, выберу другое', callback_data='choose_time'),],
+                ]
+            )
+        )
+        if data.startswith("accept"):
+            state_data = await state.get_data()
+            taken_time = data.split(":")[1] # accept:N
+            print("State",state_data)
+
+            response = requests.post(
+                f"http://backend:8000/api/take-time-windows",
+                data={
+                    "person_data": state_data["fio_person"],
+                    "telegram_nickname": callback.from_user.username,
+                    "id_judgement_place": int(state_data["id_judgement_place"]),
+                    "taken_time": taken_time,
+                }
+            )
+
+            if response.status_code in (404, 400, ):
+                raise Exception
+
+            await callback.message.answer("Очередь на запись к специалисту  по справкам о доходах и расходах оформлена.")
+            await callback.message.answer(
+                "Теперь вам нужно выбрать окно времени для посещения к кадровому специалисту",
+                reply_markup=types.InlineKeyboardMarkup(
+                    inline_keyboard=[
+                        [types.InlineKeyboardButton(text='Выбрать окно времени', callback_data="choose_time_hr"),],
+                    ]
+                )
+            )
+            await state.set_state(BookingVisitor.time_visit_hr)
+    except ValueError as e:
+        await callback.message.answer(
+            text="Извините пожалуйста, но на данный момент пока нету свободных окон. \n"
+                 "В случае отсутствия окон, позвоните пожалуйста в сектор кадрового обеспечения по телефону: +7 (812) 576-6098."
+        )
+        await callback.message.answer(
+            "Выберите удобное окно времени для посещения к кадровому специалисту",
+            reply_markup=types.InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [types.InlineKeyboardButton(text='Выбрать окно времени', callback_data="choose_time_hr"), ],
+                ]
+            )
+        )
+        await state.set_state(BookingVisitor.time_visit_hr)
+    except Exception as e:
+        logging.critical("CRITICAL error", exc_info=e)
+        await callback.message.answer(
+            "Извините пожалуйста, но входе отправки данных произошла ошибка. Мы занимаемся ее устранением."
         )
 
-        if response.status_code in (404, 400, ):
-            raise Exception
 
-        await message.answer("Ваша очередь оформлена на выбранное вами время.\n\n"
-                             "Ждем вас по адресу:\n"
-                             "191060, г Санкт-Петербург,проезд Смольный, д.1, лит.Б, 6 подъезд")
+@router.callback_query(BookingVisitor.time_visit_hr)
+async def getting_windows_hr(callback: types.CallbackQuery, state: FSMContext, *args, **kwargs):
+    state_data = await state.get_data()
+    data = callback.data
+
+    try:
+        if data.startswith("choose_time"):
+            response = requests.get(
+                f"http://backend:8000/api/free-time-windows?email={state_data['email']}"
+            )
+
+            if response.json() == []:
+                raise ValueError
+
+            kb = [[types.InlineKeyboardButton(text=f"{date['date']} (с {date['time_start']} до {date['time_end']})",
+                                              callback_data=f"taken:{date['id']}")] for date in response.json()]
+            markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
+            await callback.message.answer(
+                text="Выберите пожалуйста удобные вам окна",
+                reply_markup=markup,
+            )
+        if data.startswith("taken"):
+            await callback.message.answer(
+                f"Подтверждаете ли выбранное время?",
+                reply_markup=types.InlineKeyboardMarkup(
+                    inline_keyboard=[
+                        [types.InlineKeyboardButton(text='Да, подтверждаю',
+                                                    callback_data=f'accept:{data.split(":")[1]}'), ],
+                        [types.InlineKeyboardButton(text='Нет, выберу другое', callback_data="choose_time"), ],
+                    ]
+                )
+            )
+        if data.startswith("accept"):
+            state_data = await state.get_data()
+            taken_time = data.split(":")[1]  # accept:N
+            print("State", state_data)
+
+            response = requests.post(
+                f"http://backend:8000/api/take-time-windows",
+                data={
+                    "person_data": state_data["fio_person"],
+                    "telegram_nickname": callback.message.from_user.username,
+                    "id_judgement_place": int(state_data["id_judgement_place"]),
+                    "taken_time": taken_time,
+                }
+            )
+
+            if response.status_code in (404, 400,):
+                raise Exception
+
+            await callback.message.answer(
+                "Очередь на запись к кадровому специалисту оформлена")
+            await callback.message.answer(
+                "Спасибо, что записались на прием.\n"
+                "Ждем вас по адресу: \n"
+                "191060, г. Санкт-Петербург, проезд. Смольный, д. 1, лит. Б, 6 подъезд.",
+            )
+            await state.clear()
+
+    except ValueError as e:
+        await callback.message.answer(
+            text="Извините пожалуйста, но на данный момент пока нету свободных окон. \n"
+                 "Попробуйте запросить информацию позднее повторно нажав на кнопку 'Выбрать окно времени'"
+        )
+
+        await callback.message.answer(
+            "Выберите удобное окно времени для посещения к кадровому специалисту",
+            reply_markup=types.InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [types.InlineKeyboardButton(text='Выбрать окно времени', callback_data="choose_time_hr"), ],
+                ]
+            )
+        )
     except Exception as e:
-        logging.critical("Lost connection with server", exc_info=e)
-        await message.answer("Приносим свои извинения, но входе обработки данных, возникла ошибка")
+        logging.critical("CRITICAL error", exc_info=e)
+        await callback.message.answer(
+            "Извините пожалуйста, но входе отправки данных произошла ошибка. Мы занимаемся ее устранением."
+        )

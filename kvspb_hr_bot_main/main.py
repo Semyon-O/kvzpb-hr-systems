@@ -31,6 +31,7 @@ dp.include_router(declaration_path.router)
 # Хэндлер на команду /start
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message, state: FSMContext):
+    logging.info(f"cmd_start: {message.from_user.id}")
     await state.clear()
     kb = [
         [types.KeyboardButton(text=texts.vacancies)],
@@ -46,6 +47,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
 
 @dp.message(lambda c: c.text == texts.vacancies)
 async def vacancies(message: types.Message):
+    logging.info(f"vacancies: {message.from_user.id}")
     kb = [
         [types.InlineKeyboardButton(text=texts.komitet, callback_data=texts.komitet)],
         [types.InlineKeyboardButton(text=texts.administration, callback_data=texts.administration)],
@@ -62,6 +64,7 @@ class FaqState(StatesGroup):
 
 @dp.message(lambda c: c.text == texts.faq)
 async def faq(message: types.Message, state: FSMContext):
+    logging.info(f"faq: {message.from_user.id}") 
     await state.clear()
 
     faq_answer = [

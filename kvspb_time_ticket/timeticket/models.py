@@ -20,7 +20,9 @@ class TimeUserWindow(models.Model):
     class Meta:
         verbose_name = "Окно времени"
         verbose_name_plural = "Окна времени"
-
+        permissions = (
+            ('can_see_own_record', 'Может просматривать только свои записи'),
+        )
 
 class TimeOrder(models.Model):
     person_data = models.CharField(max_length=255, verbose_name="ФИО кандидата")
@@ -34,3 +36,7 @@ class TimeOrder(models.Model):
     class Meta:
         verbose_name = "Зарезервированное окно"
         verbose_name_plural = "Зарезервированные окна"
+
+    permissions = (
+        ('can_see_own_record', 'Может просматривать только свои записи'),
+    )
