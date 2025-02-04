@@ -484,7 +484,7 @@ async def getting_windows_hr(callback: types.CallbackQuery, state: FSMContext, *
                 f"http://backend:8000/api/take-time-windows",
                 data={
                     "person_data": state_data["fio_person"],
-                    "telegram_nickname": callback.message.from_user,
+                    "telegram_nickname": callback.from_user.username,
                     "id_judgement_place": int(state_data["id_judgement_place"]),
                     "taken_time": taken_time,
                 }
