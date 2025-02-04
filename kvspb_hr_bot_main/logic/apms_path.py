@@ -49,7 +49,7 @@ async def choose_post_handler(callback: types.CallbackQuery, state: FSMContext):
 
 
     await callback.message.answer(
-        text="Выберите пожалуйста интересущую вас должность из списка ниже",
+        text="Выберите пожалуйста интересующую вас должность из списка ниже",
         reply_markup=markup
     )
 
@@ -64,6 +64,9 @@ async def choose_district_handler(callback: types.CallbackQuery, state: FSMConte
     districts = get_unique_data_by_field("Район", services.fetch_persons_info)
 
     kb = [[types.InlineKeyboardButton(text=district, callback_data=district)] for district in districts]
+    kb.append(
+        [types.InlineKeyboardButton(text='Выбрать другую должность', callback_data='another_post')]
+    )
     markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
 
     await callback.message.answer(
@@ -76,6 +79,21 @@ async def choose_district_handler(callback: types.CallbackQuery, state: FSMConte
 
 @router.callback_query(PostAnketaStates.choose_judgment_area)
 async def choose_district_judgment_area_handler(callback: types.CallbackQuery, state: FSMContext):
+
+    if callback.data == 'another_post':
+        posts = get_unique_data_by_field("Должность", services.fetch_available_posts)
+
+        kb = [[types.InlineKeyboardButton(text=post.capitalize(), callback_data=post)] for post in posts]
+        markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
+
+        await callback.message.answer(
+            text="Выберите пожалуйста интересующую вас должность из списка ниже",
+            reply_markup=markup
+        )
+
+        await state.set_state(PostAnketaStates.choose_district)
+
+        return
 
     # search['district'] = callback.data
     await state.update_data(district=callback.data)
@@ -91,7 +109,12 @@ async def choose_district_judgment_area_handler(callback: types.CallbackQuery, s
         return
 
 
-    kb = [[types.InlineKeyboardButton(text=f"Участок №{district}", callback_data=str(district))] for district in districts]
+    kb = [
+        [types.InlineKeyboardButton(text=f"Участок №{district}", callback_data=str(district))] for district in districts
+    ]
+    kb.append(
+        [types.InlineKeyboardButton(text=f"Выбрать другой район поиска", callback_data="another_area_district")]
+    )
     markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
 
     await callback.message.answer(
@@ -103,6 +126,24 @@ async def choose_district_judgment_area_handler(callback: types.CallbackQuery, s
 
 @router.callback_query(PostAnketaStates.get_info_about_place)
 async def choose_area_handler(callback: types.CallbackQuery, state: FSMContext):
+
+    if callback.data == "another_area_district":
+        districts = get_unique_data_by_field("Район", services.fetch_persons_info)
+
+        kb = [[types.InlineKeyboardButton(text=district, callback_data=district)] for district in districts]
+        kb.append(
+            [types.InlineKeyboardButton(text='Выбрать другую должность', callback_data='another_post')]
+        )
+        markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
+
+        await callback.message.answer(
+            text="Выберите пожалуйста в каком районе вы хотели-бы рассмотреть работу?",
+            reply_markup=markup
+        )
+
+        await state.set_state(PostAnketaStates.choose_judgment_area)
+        return
+
     id_district = callback.data
 
     judgment_place = services.fetch_persons_info(filters="filterByFormula={Участок}=" + id_district)
@@ -142,8 +183,14 @@ async def start_instruction(callback: types.CallbackQuery, state: FSMContext):
                 text="Извините, в выбранной области нет доступных участков.")
             return
 
-        kb = [[types.InlineKeyboardButton(text=f"Участок №{district}", callback_data=str(district))] for district in
-              districts]
+        kb = [
+            [types.InlineKeyboardButton(text=f"Участок №{district}", callback_data=str(district))] for district in districts
+        ]
+
+        kb.append(
+            [types.InlineKeyboardButton(text="Выбрать другой район поиска", callback_data="another_area_district")]
+        )
+
         markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
 
         await callback.message.answer(
@@ -175,7 +222,7 @@ async def filling_anket(callback: types.CallbackQuery, state: FSMContext, bot: B
     id_judgement_place = callback.data
 
     await state.update_data(id_judgement_place=id_judgement_place)
-
+    print(await state.get_data())
     judgment_place = services.fetch_persons_info(filters="filterByFormula={Участок}=" + id_judgement_place)
 
     data = judgment_place[0]['fields']
@@ -437,7 +484,7 @@ async def getting_windows_hr(callback: types.CallbackQuery, state: FSMContext, *
                 f"http://backend:8000/api/take-time-windows",
                 data={
                     "person_data": state_data["fio_person"],
-                    "telegram_nickname": callback.message.from_user.username,
+                    "telegram_nickname": callback.message.from_user,
                     "id_judgement_place": int(state_data["id_judgement_place"]),
                     "taken_time": taken_time,
                 }
