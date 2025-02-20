@@ -23,15 +23,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-q#=22d(nsmqf_b8v+(nw(xzzfek=s#len0iq*70m@g@x7*(6^c'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 CSRF_TRUSTED_ORIGINS = ['http://www.delaem.com']
 
 # Application definition
 
+
 INSTALLED_APPS = [
+    'drf_yasg',
     'jazzmin',
+    'django_filters',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,7 +42,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'candidates.apps.CandidatesConfig',
     'timeticket.apps.TimeticketConfig',
+    'judgment.apps.JudgmentConfig',
 ]
 
 MIDDLEWARE = [
@@ -57,7 +62,9 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

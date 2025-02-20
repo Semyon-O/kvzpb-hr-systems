@@ -1,12 +1,9 @@
 from django.contrib.auth.models import User
 from django.db import models
 
-import judgment
-
 
 class District(models.Model):
     name = models.CharField(max_length=255, unique=True, primary_key=True)
-
 
 class Vacancy(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -21,6 +18,7 @@ class Judgment(models.Model):
     phone = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
     inspector = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    vacancies = models.ManyToManyField(Vacancy, blank=True, through="VacancyInJudgment")
 
     def __str__(self):
         return f'Судебный участок №{self.id_judgment}'
