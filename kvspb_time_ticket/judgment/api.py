@@ -1,7 +1,7 @@
 from rest_framework import generics
-from . import models, serializers
+from . import models, serializers, filters
 
-
+from django_filters import rest_framework as rest_filters
 # Create your views here.
 
 
@@ -36,3 +36,12 @@ class ListVacancy(generics.ListAPIView):
         return response
 
 
+class ListDistricts(generics.ListAPIView):
+    queryset = models.District.objects.all()
+    serializer_class = serializers.DistrictSerializer
+    filter_backends = (rest_filters.DjangoFilterBackend,)
+    filterset_class = filters.DistrictsByVacanciesFilter
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        return response
