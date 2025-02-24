@@ -43,6 +43,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/free-time-windows', views.TimeUserWindowView.as_view(), name='free-time-windows'),
     path('api/take-time-windows', views.TakeTimeOrder.as_view(), name='take-time-windows'),
-    path('judgment/', include('judgment.urls')),
+    path('api/judgment/', include('judgment.urls')),
 
 ]

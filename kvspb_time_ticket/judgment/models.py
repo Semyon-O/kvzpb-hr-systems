@@ -9,7 +9,7 @@ class Vacancy(models.Model):
     name = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
-        return self.name
+        return f"{self.name}"
 
 class Judgment(models.Model):
     id_judgment = models.IntegerField(primary_key=True)

@@ -9,7 +9,6 @@ class DistrictsByVacanciesFilter(filters.FilterSet):
         queryset=models.Vacancy.objects.all(),
     )
 
-
     class Meta:
         model = models.District
         fields = ['vacancy']

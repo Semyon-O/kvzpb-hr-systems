@@ -2,8 +2,7 @@ from django.contrib import admin
 
 from judgment.models import Judgment, VacancyInJudgment, District, Vacancy
 
-# Register your models here.
-
+# TODO: Сделать загрузку excel
 class JudgmentAdmin(admin.ModelAdmin):
     list_display = ("id_judgment","fio_judgment", "district",)
 
