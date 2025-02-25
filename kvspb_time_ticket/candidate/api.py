@@ -28,6 +28,7 @@ class CheckCandidateAccess(generics.RetrieveAPIView):
         - not_read (Не просмотрено)
         - access (Документы приняты)
         - not_access (Документы не были посланы)
+    Для получения информации о кандидате используется ID телеграм аккаунта. ID телеграм, передается в виде строки
     """
     queryset = CandidateAccess.objects.all()
     serializer_class = CandidateAccessSerializer
