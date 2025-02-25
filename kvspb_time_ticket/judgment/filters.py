@@ -7,6 +7,7 @@ from . import models
 class DistrictsByVacanciesFilter(filters.FilterSet):
     vacancy = filters.ModelMultipleChoiceFilter(
         queryset=models.Vacancy.objects.all(),
+
     )
 
     class Meta:

@@ -9,6 +9,10 @@ from candidate.serializers import CandidateSerializer, CandidateAccessSerializer
 
 
 class CreateNewCandidate(generics.CreateAPIView):
+    """
+    Создает запись кандидата. При создании записи, создается также запись на проверку документов.
+    Статус проверки по умолчанию ставиться в not_read (не прочитано)
+    """
     queryset = Candidate.objects.all()
     serializer_class = CandidateSerializer
 
@@ -18,11 +22,18 @@ class CreateNewCandidate(generics.CreateAPIView):
 
 
 class CheckCandidateAccess(generics.RetrieveAPIView):
+    """
+    Получает информацию о ходе проверки документов кандидата.
+    Три статуса:
+        - not_read (Не просмотрено)
+        - access (Документы приняты)
+        - not_access (Документы не были посланы)
+    """
     queryset = CandidateAccess.objects.all()
     serializer_class = CandidateAccessSerializer
 
     def retrieve(self, request, *args, **kwargs):
-        # TODO: Сделать получение кандидата по TG ID
+
         tg_id = kwargs.get('tg_id')
         candidate_access = self.__retrieve_by_tg_id(tg_id)
         serializer = CandidateAccessSerializer(candidate_access, many=False)

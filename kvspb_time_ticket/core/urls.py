@@ -28,7 +28,7 @@ schema_view = get_schema_view(
    openapi.Info(
       title="API для найма кандидатов в аппарат мировых судей",
       default_version='v1',
-      description="-",
+      description="",
       terms_of_service="https://www.google.com/policies/terms/",
       contact=openapi.Contact(email="orekhovsemyon@gmail.com"),
       license=openapi.License(name="BSD License"),
