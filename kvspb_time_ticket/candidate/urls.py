@@ -5,8 +5,7 @@ from . import api
 
 url_router = routers.DefaultRouter()
 
-url_paths = [
+urlpatterns = [
     path('', api.CreateNewCandidate.as_view(), name='create-candidate'),
     path('<int:tg_id>/check-status', api.CheckCandidateAccess.as_view(), name='check-status'),
-
 ]

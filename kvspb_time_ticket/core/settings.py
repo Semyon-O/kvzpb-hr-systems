@@ -41,8 +41,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'timeticket.apps.TimeticketConfig',
     'judgment.apps.JudgmentConfig',
+    'candidate.apps.CandidateConfig',
 ]
 
 MIDDLEWARE = [
