@@ -37,7 +37,7 @@ schema_view = get_schema_view(
    permission_classes=(permissions.AllowAny,),
 )
 
-import candidate
+from judgment import views as judgment_views
 
 urlpatterns = [
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
@@ -47,4 +47,10 @@ urlpatterns = [
     path('api/take-time-windows', views.TakeTimeOrder.as_view(), name='take-time-windows'),
     path('api/judgment/', include('judgment.urls')),
     path('api/candidate/', include('candidate.urls')),
+
+    path('import-data', judgment_views.import_data, name='import_data'),
+
 ]
+
+
+
