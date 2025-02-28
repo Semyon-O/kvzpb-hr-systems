@@ -5,13 +5,13 @@ The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.1/topics/http/urls/
 Examples:
 Function views
-    1. Add an import:  from my_app import views
+    1. Add an import_tools:  from my_app import_tools views
     2. Add a URL to urlpatterns:  path('', views.home, name='home')
 Class-based views
-    1. Add an import:  from other_app.views import Home
+    1. Add an import_tools:  from other_app.views import_tools Home
     2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
 Including another URLconf
-    1. Import the include() function: from django.urls import include, path
+    1. Import the include() function: from django.urls import_tools include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
@@ -48,7 +48,7 @@ urlpatterns = [
     path('api/judgment/', include('judgment.urls')),
     path('api/candidate/', include('candidate.urls')),
 
-    path('import-data', judgment_views.import_data, name='import_data'),
+    path('import_data', judgment_views.ImportView.as_view(), name='import'),
 
 ]
 
