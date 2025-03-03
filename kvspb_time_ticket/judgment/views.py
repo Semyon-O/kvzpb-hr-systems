@@ -1,37 +1,48 @@
-import asyncio
+from select import select
 
+from django.contrib import messages
 from django.contrib.auth.models import User
+from django.db.models import Q
 from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse
 
 from judgment.forms import UploadForm
-from judgment.models import Judgment, District
+from judgment.models import Judgment, District, Vacancy, VacancyInJudgment
 
 from judgment.services import format_imports
 
-class ImportView(View):
+class ImportJudgmentView(View):
 
-    template_name = 'admin/judgment/judgment/import_judgment_view.html'
+    import_template_name = 'admin/judgment/judgment/import_judgment_view.html'
 
     def get(self, request, *args, **kwargs):
         form = UploadForm()
-        page = render(request, self.template_name, {'form': form})
+        page = render(request, self.import_template_name, {'form': form})
         return page
-
 
     def post(self, request):
         form = UploadForm(request.POST, request.FILES)
 
-        if form.is_valid():
-            file_to_upload = request.FILES['file_to_upload']
-            import_context = format_imports.ImportContext(import_format=format_imports.CSVFormatImport())
+        # TODO: Расписать ошибки
+        try:
+            if form.is_valid():
+                file_to_upload = request.FILES['file_to_upload']
+                import_context = format_imports.ImportContext(import_format=format_imports.CSVFormatImport())
 
-            data = import_context.import_data_from_file(file_to_upload)
-            self.__insert_data_to_models(data)
+                data = import_context.import_data_from_file(file_to_upload)
+                self.__insert_data_to_models(data)
+                messages.success(request,
+                                 'Участки мировых судей успешно импортированы. Можете закрыть данное окно и обновить страницу')
+            else:
+                messages.error(request,"Произошла ошибка. Данный формат файла нельзя импортировать. Можно импортировать только .xlsx, .csv")
+        except KeyError:
+            messages.error(request, "Импортировать таблицу невозможно. Не соответствие название столбцов. Проверьте пожалуйста наименование столбцов")
 
 
-        return HttpResponse("Succes import")
+        form = UploadForm()
+        page = render(request, self.import_template_name, {'form': form})
+        return page
 
     def __insert_data_to_models(self, data):
         for judgment in data:
@@ -49,7 +60,8 @@ class ImportView(View):
 
             new_judgment.save()
 
-    def __create_or_return_user(self, email: str):
+    @staticmethod
+    def __create_or_return_user(email: str):
         user = User.objects.filter(email=email).first()
         if user is None:
             user = User.objects.create_user(email=email, username=email.split('@')[0])
@@ -61,3 +73,62 @@ class ImportView(View):
         else:
             return user
 
+class ImportVacanciesInJudgmentView(View):
+
+    import_template_name = 'admin/judgment/vacancyinjudgment/import_vacancy_judgment_view.html'
+
+    def get(self, request, *args, **kwargs):
+        form = UploadForm()
+        page = render(request, self.import_template_name, {'form': form})
+        return page
+
+    def post(self, request):
+        form = UploadForm(request.POST, request.FILES)
+
+        try:
+            if form.is_valid():
+                file_to_upload = request.FILES['file_to_upload']
+                import_context = format_imports.ImportContext(import_format=format_imports.CSVFormatImport())
+
+                data = import_context.import_data_from_file(file_to_upload)
+                self.__insert_data_to_models(data)
+                messages.success(request,
+                                 "Данные о вакансиях успешно импортированы. Можете закрыть окно и обновить страницу")
+            else:
+                messages.error(request,"Произошла ошибка. Данный формат файла нельзя импортировать. Можно импортировать только .xlsx, .csv")
+        except KeyError:
+            messages.error(request, "Произошла ошибка!\n"
+                                    "Не соответствие имен столбцов с требуемым форматом")
+
+        form = UploadForm()
+        page = render(request, self.import_template_name, {'form': form})
+        return page
+
+    def __insert_data_to_models(self, data):
+        for vacancies_judgment in data:
+            # TODO: Предусмотреть единый вид получения данных
+            vacancy = self.__get_vacancy_object(vacancies_judgment['должность'])
+            raw_id_judgment = self.__get_judgment_object(vacancies_judgment['Судебный участок'])
+
+            if not self.__check_existing_vacancies(raw_id_judgment, vacancy):
+                VacancyInJudgment.objects.create(
+                    judgment=raw_id_judgment,
+                    vacancy=vacancy,
+                )
+            else:
+                pass
+
+    def __check_existing_vacancies(self, id_judgment, vacancy) -> bool:
+        is_exist = VacancyInJudgment.objects.filter(
+                Q(judgment=id_judgment) &
+                Q(vacancy=vacancy)
+        ).exists()
+        return is_exist
+
+    def __get_judgment_object(self, raw_id_judgment) -> "Judgment":
+        judgment_object = Judgment.objects.get(id_judgment=raw_id_judgment)
+        return judgment_object
+
+    def __get_vacancy_object(self, raw_name_vacancy) -> "Vacancy":
+        position_object = Vacancy.objects.filter(name=raw_name_vacancy).first()
+        return position_object

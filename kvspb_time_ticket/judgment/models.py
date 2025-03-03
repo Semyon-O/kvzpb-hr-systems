@@ -8,11 +8,15 @@ class District(models.Model):
     class Meta:
         verbose_name_plural = "Районы"
 
+    def __str__(self):
+        return self.name
+
 class Vacancy(models.Model):
     name = models.CharField(max_length=255, unique=True, verbose_name="Должность")
 
     class Meta:
         verbose_name_plural = "Должности"
+        verbose_name = "Должность"
 
     def __str__(self):
         return f"{self.name}"

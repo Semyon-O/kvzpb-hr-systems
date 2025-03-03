@@ -48,7 +48,9 @@ urlpatterns = [
     path('api/judgment/', include('judgment.urls')),
     path('api/candidate/', include('candidate.urls')),
 
-    path('import_data', judgment_views.ImportView.as_view(), name='import'),
+    # Admin Panel
+    path('import_data', judgment_views.ImportJudgmentView.as_view(), name='import'),
+    path('import_data_vacancies', judgment_views.ImportVacanciesInJudgmentView.as_view(), name='import_data_vacancies'),
 
 ]
 
