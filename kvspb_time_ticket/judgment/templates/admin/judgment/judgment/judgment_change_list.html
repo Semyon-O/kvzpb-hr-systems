@@ -11,6 +11,9 @@
         window.open(url, '_blank', params);
       }
     </script>
-    <a href="#" onclick="openPopup('{% url 'import' %}')" class="btn btn-success float-right">Импортировать список участков мир. судей</a>
+    {% if request.user.is_superuser %}
+        <a href="#" onclick="openPopup('{% url 'import' %}')" class="btn btn-success float-right">Импортировать список участков мир. судей</a>
+    {% endif %}
+    
     {{ block.super }}
 {% endblock %}

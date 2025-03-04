@@ -7,10 +7,8 @@ class UploadForm(forms.Form):
     file_to_upload = forms.FileField(widget=forms.FileInput())
 
     def clean_file_to_upload(self):
-        # Получаем загруженный файл
         file = self.cleaned_data.get('file_to_upload')
 
-        # Проверяем расширение файла
         filename = file.name
         extension = os.path.splitext(filename)[1].lower()
 
@@ -20,12 +18,12 @@ class UploadForm(forms.Form):
         return file
 
     def is_valid(self):
-        valid = super().is_valid()  # Вызываем базовую проверку валидности
+        valid = super().is_valid()
         if not valid:
             return False
 
         try:
-            self.clean_file_to_upload()  # Добавляем проверку расширения файла
+            self.clean_file_to_upload()
         except forms.ValidationError as e:
             self.add_error('file_to_upload', e)
             return False

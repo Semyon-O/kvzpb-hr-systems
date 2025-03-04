@@ -5,7 +5,7 @@ class Candidate(models.Model):
     name = models.CharField(max_length=255, verbose_name="Имя")
     surname = models.CharField(max_length=255, verbose_name="Фамилия")
     email = models.EmailField(verbose_name="Почта")
-    telegram_id = models.CharField(max_length=255, blank=True, null=True)
+    telegram_id = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
         return f"{self.surname} {self.name} ({self.email})"

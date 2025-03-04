@@ -1,11 +1,9 @@
-from select import select
-
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.db import IntegrityError
 from django.db.models import Q
 from django.shortcuts import render
 from django.views import View
-from django.http import HttpResponse
 
 from judgment.forms import UploadForm
 from judgment.models import Judgment, District, Vacancy, VacancyInJudgment
@@ -23,8 +21,6 @@ class ImportJudgmentView(View):
 
     def post(self, request):
         form = UploadForm(request.POST, request.FILES)
-
-        # TODO: Расписать ошибки
         try:
             if form.is_valid():
                 file_to_upload = request.FILES['file_to_upload']
@@ -99,6 +95,9 @@ class ImportVacanciesInJudgmentView(View):
         except KeyError:
             messages.error(request, "Произошла ошибка!\n"
                                     "Не соответствие имен столбцов с требуемым форматом")
+        except IntegrityError as e:
+            messages.error(request, f"{e}")
+
 
         form = UploadForm()
         page = render(request, self.import_template_name, {'form': form})
@@ -106,8 +105,11 @@ class ImportVacanciesInJudgmentView(View):
 
     def __insert_data_to_models(self, data):
         for vacancies_judgment in data:
-            # TODO: Предусмотреть единый вид получения данных
+
             vacancy = self.__get_vacancy_object(vacancies_judgment['должность'])
+            if vacancy is None:
+                raise IntegrityError(f"Данная ванансия не найдена в системе ({vacancies_judgment['должность']}). Проверьте существует ли она?")
+
             raw_id_judgment = self.__get_judgment_object(vacancies_judgment['Судебный участок'])
 
             if not self.__check_existing_vacancies(raw_id_judgment, vacancy):
@@ -115,8 +117,6 @@ class ImportVacanciesInJudgmentView(View):
                     judgment=raw_id_judgment,
                     vacancy=vacancy,
                 )
-            else:
-                pass
 
     def __check_existing_vacancies(self, id_judgment, vacancy) -> bool:
         is_exist = VacancyInJudgment.objects.filter(
