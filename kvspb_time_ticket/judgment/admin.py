@@ -9,9 +9,10 @@ class VacancyInJudgmentInlineAdmin(admin.TabularInline):
 
 # TODO: Сделать загрузку excel
 class JudgmentAdmin(admin.ModelAdmin):
-    list_display = ("id_judgment","fio_judgment", "district",)
+    list_display = ("id_judgment","fio_judgment", "district","inspector__first_name")
     change_list_template = "admin/judgment/judgment/judgment_change_list.html"
     inlines = [VacancyInJudgmentInlineAdmin]
+    list_filter = ("id_judgment", "district", "inspector__first_name",)
 
 
 class VacancyInJudgmentAdmin(admin.ModelAdmin):

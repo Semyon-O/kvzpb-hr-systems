@@ -35,18 +35,15 @@ class TimeOrderAdmin(admin.ModelAdmin):
 @admin.register(models.TimeUserWindow)
 class TimeUserWindowAdmin(admin.ModelAdmin):
     fields = ['date',('time_start', 'time_end'), 'status']
-
+    list_filter = ("date", "user__first_name")
     def save_model(self, request, obj, form, change):
         obj.user = request.user
         super().save_model(request, obj, form, change)
 
     def get_list_display(self, request):
         if request.user.is_authenticated:
-            if request.user.is_superuser:
-                return ("date", "time_start", "time_end",'status_colored', 'user')
+            return ("date", "time_start", "time_end",'status_colored', 'user__first_name')
 
-            else:
-                return ("date", "time_start", "time_end",'status_colored',)
         return None
 
     def status_colored(self, obj: TimeUserWindow):
