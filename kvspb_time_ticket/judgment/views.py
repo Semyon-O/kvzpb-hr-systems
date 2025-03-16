@@ -32,7 +32,8 @@ class ImportJudgmentView(View):
                                  'Участки мировых судей успешно импортированы. Можете закрыть данное окно и обновить страницу')
             else:
                 messages.error(request,"Произошла ошибка. Данный формат файла нельзя импортировать. Можно импортировать только .xlsx, .csv")
-        except KeyError:
+        except KeyError as e:
+            print(e)
             messages.error(request, "Импортировать таблицу невозможно. Не соответствие название столбцов. Проверьте пожалуйста наименование столбцов")
 
 
@@ -43,24 +44,26 @@ class ImportJudgmentView(View):
     def __insert_data_to_models(self, data):
         for judgment in data:
             new_judgment = Judgment()
-            new_judgment.id_judgment = judgment["id_judgment"]
-            district = District.objects.get_or_create(name=judgment["district"])[0]
+            print(judgment)
+            new_judgment.id_judgment = judgment["Участок"]
+            district = District.objects.get_or_create(name=judgment["Район"])[0]
             new_judgment.district = district
 
-            new_judgment.fio_judgment = judgment["fio_judgment"]
-            new_judgment.phone = judgment["phone"]
+            new_judgment.fio_judgment = judgment["ФИО судьи"]
+            new_judgment.phone = judgment["Телефон"]
             new_judgment.description = judgment["Адрес"]
 
-            inspector = self.__create_or_return_user(judgment['Почта'])
+            inspector = self.__create_or_return_user(judgment['Почта'], first_name_inspector=judgment.get("Сотрудник, ответственный за участок"))
             new_judgment.inspector = inspector
 
             new_judgment.save()
 
     @staticmethod
-    def __create_or_return_user(email: str):
+    def __create_or_return_user(email: str, *args, **kwargs):
         user = User.objects.filter(email=email).first()
         if user is None:
             user = User.objects.create_user(email=email, username=email.split('@')[0])
+            user.first_name = kwargs.get("first_name_inspector", None)
             user.set_password("PassWord@12345")
             user.is_active = False
             user.is_staff = True
