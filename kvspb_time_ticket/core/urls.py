@@ -43,8 +43,8 @@ urlpatterns = [
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('admin/', admin.site.urls),
-    path('api/free-time-windows', views.TimeUserWindowView.as_view(), name='free-time-windows'),
-    path('api/take-time-windows', views.TakeTimeOrder.as_view(), name='take-time-windows'),
+    # path('api/free-time-windows', views.TimeUserWindowView.as_view(), name='free-time-windows'),
+    # path('api/take-time-windows', views.TakeTimeOrder.as_view(), name='take-time-windows'),
     path('api/judgment/', include('judgment.urls')),
     path('api/candidate/', include('candidate.urls')),
 

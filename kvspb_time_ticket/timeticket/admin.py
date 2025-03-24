@@ -8,6 +8,7 @@ from .models import TimeUserWindow
 # Register your models here.
 @admin.register(models.TimeOrder)
 class TimeOrderAdmin(admin.ModelAdmin):
+    raw_id_fields = ("taken_time", )
 
     def get_queryset(self, request):
         orders = super().get_queryset(request)
@@ -26,16 +27,14 @@ class TimeOrderAdmin(admin.ModelAdmin):
                 return orders.none()
         return orders.none()
 
-
     def get_list_display(self, request):
         return ("person_data", "taken_time", 'id_judgement_place')
-
-
 
 @admin.register(models.TimeUserWindow)
 class TimeUserWindowAdmin(admin.ModelAdmin):
     fields = ['date',('time_start', 'time_end'), 'status']
     list_filter = ("date", "user__first_name")
+
     def save_model(self, request, obj, form, change):
         obj.user = request.user
         super().save_model(request, obj, form, change)

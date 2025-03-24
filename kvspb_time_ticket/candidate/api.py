@@ -1,6 +1,3 @@
-from os import access
-
-from django.core.serializers import get_serializer
 from rest_framework import generics, status
 from rest_framework.response import Response
 
@@ -42,6 +39,29 @@ class CheckCandidateAccess(generics.RetrieveAPIView):
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     def __retrieve_by_tg_id(self, tg_id):
+        candidate = Candidate.objects.filter(telegram_id=tg_id).first()
+        candidate_access = CandidateAccess.objects.filter(candidate=candidate).first()
+        return candidate_access
+
+class ReCheckCandidateAccess(generics.UpdateAPIView):
+    """
+    Отправляет запрос на перепроверку документов пользователя.
+    При запросе меняет НЕГАТИВНЫЙ статус на статус "not_read"
+    PATCH - не имплементирован. То есть недействительный
+    """
+    
+    def update(self, request, *args, **kwargs):
+        tg_id = kwargs.get('tg_id')
+        candidate_access = self.__retrieve_by_tg_id(tg_id)
+        if candidate_access.status != "access":
+            candidate_access.status = 'not_read'
+            candidate_access.save()
+
+        serializer = CandidateAccessSerializer(candidate_access, many=False)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+        
+        
+    def __retrieve_by_tg_id(self, tg_id) -> CandidateAccess:
         candidate = Candidate.objects.filter(telegram_id=tg_id).first()
         candidate_access = CandidateAccess.objects.filter(candidate=candidate).first()
         return candidate_access
