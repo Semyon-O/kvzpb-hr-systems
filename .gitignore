@@ -1,6 +1,10 @@
 .idea
 
 kvspb_hr_bot_main/.vscode
+kvspb_hr_bot_main/.idea
 kvspb_hr_bot_main/logic/__pycache__
+
+kvspb_time_ticket/.idea
+kvspb_time_ticket/venv
 
 bot.env
