@@ -12,7 +12,6 @@ import texts
 from logic import komitet_path, apms_path, declaration_path
 
 
-# Включаем логирование, чтобы не пропустить важные сообщения
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'

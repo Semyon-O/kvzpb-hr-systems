@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 
 from aiogram import Router, types, Bot
 from aiogram.enums import ChatAction
@@ -217,7 +218,9 @@ async def filling_fio(callback: types.CallbackQuery, state: FSMContext, bot: Bot
     id_judgement_place = callback.data
     await state.update_data(id_judgement_place=id_judgement_place)
     await callback.message.answer(
-        "Для начала введите свое ФИО"
+        "Отлично\n"
+        "Теперь вам нужно заполнить документы и отправить ответственному на проверку\n"
+        "Но для начала введите свое ФИО"
     )
     await state.set_state(PostAnketaStates.email_ask)
 
@@ -225,30 +228,29 @@ async def filling_fio(callback: types.CallbackQuery, state: FSMContext, bot: Bot
 @router.message(PostAnketaStates.email_ask)
 async def filling_email(message: types.Message, state: FSMContext, *args, **kwargs):
     fio_person = message.text
+    try:
+        surname = fio_person.split()[0]
+        name = fio_person.split()[1]
+    except:
+        await message.answer("Неккоректный ввод имени и фамилии. Введите имя, фамилию и отчество полностью через пробел")
+        await state.set_state(PostAnketaStates.email_ask)
+        return
     await state.update_data(fio_person=fio_person)
-    await message.answer("Теперь вам нужно ввести свой email")
+    await message.answer("Отлично. Теперь вам нужно ввести свой email. На основе вашего email мы найдем документы.")
     await state.set_state(PostAnketaStates.start_filling_anket)
-
-
-# @router.message(PostAnketaStates.email_confirm)
-# async def confilling_email(message: types.Message, state: FSMContext, *args, **kwargs):
-#     email_person = message.text
-#     await state.update_data(email_person=email_person)
-#     await state.set_state(PostAnketaStates.start_filling_anket)
 
 
 @router.message(PostAnketaStates.start_filling_anket)
 async def filling_anket(message: types.Message, state: FSMContext, bot: Bot, *args, **kwargs):
     email_person = message.text
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    logging.info(f"RE {re.match(pattern, email_person)}")
+
     await state.update_data(email_person=email_person)
     logging.info(f"FILLING ANKET {await state.get_data()}")
 
     data = await state.get_data()
     id_judgement_place = data["id_judgement_place"]
-    # print(await state.get_data())
-    # judgment_place = services.fetch_persons_info(filters="filterByFormula={Участок}=" + id_judgement_place)
-
-    # data = judgment_place[0]['fields']
 
     await message.answer(
         text="Спасибо! После заполнения анкеты, вам необходимо заполнить следующие документы:"
@@ -298,7 +300,6 @@ async def filling_anket(message: types.Message, state: FSMContext, bot: Bot, *ar
 async def info_about_tender(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
     # Функ создания записи кандидата
     data = await state.get_data()
-    logging.info("ВСЕ НА ДАННЫЙ МОМЕНТ  " + str(data))
     user_id = callback.from_user.id
     logging.info(user_id)
     fio = str(data["fio_person"])
@@ -346,24 +347,25 @@ async def waiting_for_info(callback: types.CallbackQuery, state: FSMContext, bot
 
     if (status == "not_read"):
         await callback.message.answer(
-            text="""Статус вашей заявки: Не просмотрено.\n
-        Ваши документы проверяются инспектором. Проверьте статус проверки позже. 
-        """,
+            text="Статус вашей заявки: На рассмотрении.\n "
+                 "Ваши документы будут проверены инспектором в ближайшее время. "
+                 "Важно, проверяйте статус ваших документов нажав на кнопку:\n"
+                 "'Проверить статус заявки'",
             reply_markup=markup)
 
     if (status == "not_access"):
         await callback.message.answer(
-            text="""Статус вашей заявки: Не были получены документы.\n
-            Документы не были посланы или была выявлена ошибка. Пожалуйста отправьте повторно.
-            """,
+            text="Статус вашей заявки: Не были получены.\n "
+                 "Документы не были получены инспектором. "
+                 "Проверьте, отправляли ли вы письмо с документами с указанной выше почты?\n"
+                 "Попробуйте отпрвить еще раз",
             reply_markup=markup3)
         services.resend_document_status(callback.from_user.id)
 
     if (status == "access"):
         await callback.message.answer(
-            text="""Статус вашей заявки: Принято.\n
-        Теперь вы можете начать процесс поступления на гос службу.
-        """,
+            text="Статус вашей заявки: Принято в работу.\n"
+                 "Теперь вы можете начать процесс поступления на гос. службу.",
             reply_markup=markup2)
         await state.set_state(PostAnketaStates.user_collected_all_docs)
         return
@@ -372,13 +374,11 @@ async def waiting_for_info(callback: types.CallbackQuery, state: FSMContext, bot
 @router.callback_query(PostAnketaStates.user_collected_all_docs)
 async def filling_work_docs(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
     await callback.message.answer(
-        text="""
-        Наши поздравления!\n\nДля поступления на государственную гражданскую службу необходимо предоставить следующие документы.
-        """
-    )
+        text="Наши поздравления!\n"
+             "Для поступления на государственную гражданскую службу необходимо предоставить следующие документы.")
 
     kb = [
-        [types.InlineKeyboardButton(text="Я собрал все документы", callback_data="data")]
+        [types.InlineKeyboardButton(text="Я собрал(а) все документы", callback_data="data")]
     ]
     markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
 
