@@ -33,7 +33,7 @@ class TimeOrderAdmin(admin.ModelAdmin):
 @admin.register(models.TimeUserWindow)
 class TimeUserWindowAdmin(admin.ModelAdmin):
     fields = ['date',('time_start', 'time_end'), 'status']
-    list_filter = ("date", "user__first_name")
+    list_filter = ("date", "user__first_name", "status")
 
     def save_model(self, request, obj, form, change):
         obj.user = request.user
@@ -41,26 +41,9 @@ class TimeUserWindowAdmin(admin.ModelAdmin):
 
     def get_list_display(self, request):
         if request.user.is_authenticated:
-            return ("date", "time_start", "time_end",'status_colored', 'user__first_name')
+            return ("date", "time_start", "time_end",'status', 'user__first_name')
 
         return None
-
-    def status_colored(self, obj: TimeUserWindow):
-        if obj.status == "open":
-            color = "green"
-            text = "Запись открыта"
-        elif obj.status == "close":
-            color = "red"
-            text = "Запись закрыта"
-        else:
-            color = "black"
-            text = obj.status
-
-        return format_html(
-            f'<span style="border-color:{color}; border-style:solid; border-width: 2px; padding: 3px; border-radius: 30px;">{text}</span>',
-        )
-    status_colored.short_description = 'Статус'
-
 
     def get_queryset(self, request):
         orders = super().get_queryset(request)
