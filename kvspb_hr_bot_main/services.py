@@ -4,10 +4,12 @@ import typing
 import cachetools
 import requests
 
+socket = "http://localhost:8000"
+
 # получение должностей
 def fetch_available_posts(filters="") -> typing.Dict:
     response = requests.get(
-        "http://backend:8000/api/judgment/vacancy/types"
+        socket+"/api/judgment/vacancy/types"
         +filters,
         headers={
             # "Authorization": AIRTABLE_TOKEN,
@@ -19,7 +21,7 @@ def fetch_available_posts(filters="") -> typing.Dict:
 def fetch_persons_info(filters=""):
     logging.info("ФИЛЬТРАЦИЯ" + filters)
     response = requests.get(
-        "http://backend:8000/api/judgment/district?vacancy="
+        socket+"/api/judgment/district?vacancy="
         +filters,
         headers={
             # "Authorization": AIRTABLE_TOKEN,
@@ -31,7 +33,7 @@ def fetch_persons_info(filters=""):
 def fetch_candidate_status(tgid=""):
     # logging.info("ФИЛЬТРАЦИЯ" + filters)
     response = requests.get(
-        "http://backend:8000/api/candidate/" + str(tgid) + "/check-status",
+        socket+"/api/candidate/" + str(tgid) + "/check-status",
         headers={
             # "Authorization": AIRTABLE_TOKEN,
         },
@@ -47,7 +49,7 @@ def post_candidate(name: str, surname: str, email: str, tgid: str):
     "telegram_id": tgid,
     }
     response = requests.post(
-        "http://backend:8000/api/candidate/",
+        socket+"/api/candidate/",
         headers={
             # "Authorization": AIRTABLE_TOKEN,
         },
@@ -59,7 +61,7 @@ def post_candidate(name: str, surname: str, email: str, tgid: str):
 def fetch_judgement_place_byid(filters=""):
     logging.info("ФИЛЬТРАЦИЯ" + filters)
     response = requests.get(
-        "http://backend:8000/api/judgment/"
+        socket+"/api/judgment/"
         +filters,
         headers={
             # "Authorization": AIRTABLE_TOKEN,
@@ -82,7 +84,7 @@ def get_unique_data_by_field(field: "str", table_func) -> typing.List["str"]:
 # участки
 def fetch_judgment_places(district: "str", post: "int",):
      response = requests.get(
-        "http://backend:8000/api/judgment/",
+        socket+"/api/judgment/",
         headers={
             # "Authorization": AIRTABLE_TOKEN,
         },
@@ -100,7 +102,7 @@ def fetch_judgment_places(district: "str", post: "int",):
 def resend_document_status(tg_id):
     logging.info(f"resend_document_status: {tg_id}")
     response = requests.put(
-        f"http://backend:8000/api/candidate/{tg_id}/recheck-status"
+        socket+f"/api/candidate/{tg_id}/recheck-status"
     )
     logging.info(response.json())
     return response.json()
