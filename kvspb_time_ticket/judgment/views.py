@@ -97,7 +97,9 @@ class ImportVacanciesInJudgmentView(View):
                 messages.error(request,"Произошла ошибка. Данный формат файла нельзя импортировать. Можно импортировать только .xlsx, .csv")
         except KeyError:
             messages.error(request, "Произошла ошибка!\n"
-                                    "Не соответствие имен столбцов с требуемым форматом")
+                                    "Не соответствие имен столбцов с требуемым форматом. "
+                                    "Проверьте чтобы столбец номера участка назывался 'номер участка',"
+                                    "и столбец должности назывался 'должность'")
         except IntegrityError as e:
             messages.error(request, f"{e}")
 
@@ -113,7 +115,7 @@ class ImportVacanciesInJudgmentView(View):
             if vacancy is None:
                 raise IntegrityError(f"Данная ванансия не найдена в системе ({vacancies_judgment['должность']}). Проверьте существует ли она?")
 
-            raw_id_judgment = self.__get_judgment_object(vacancies_judgment['Судебный участок'])
+            raw_id_judgment = self.__get_judgment_object(vacancies_judgment['номер участка'])
 
             if not self.__check_existing_vacancies(raw_id_judgment, vacancy):
                 VacancyInJudgment.objects.create(

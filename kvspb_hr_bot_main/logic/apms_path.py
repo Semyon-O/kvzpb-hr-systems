@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 
 from aiogram import Router, types, Bot
 from aiogram.enums import ChatAction
@@ -48,7 +49,7 @@ async def choose_post_handler(callback: types.CallbackQuery, state: FSMContext):
     posts = services.fetch_available_posts()
     logging.info(f"ПОСТс {posts}")
 
-    kb = [[types.InlineKeyboardButton(text=post['name'], callback_data=str(post['id']))] for post in posts]
+    kb = [[types.InlineKeyboardButton(text=str(post['name']).capitalize(), callback_data=str(post['id']))] for post in posts]
     markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
 
     await callback.message.answer(
@@ -83,7 +84,8 @@ async def choose_district_handler(callback: types.CallbackQuery, state: FSMConte
 async def choose_district_judgment_area_handler(callback: types.CallbackQuery, state: FSMContext):
     if callback.data == 'another_post':
         posts = services.fetch_available_posts()
-        kb = [[types.InlineKeyboardButton(text=post['name'], callback_data=str(post['id']))] for post in posts]
+
+        kb = [[types.InlineKeyboardButton(text=str(post['name']).capitalize(), callback_data=str(post['id']))] for post in posts]
         markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
 
         await callback.message.answer(
@@ -153,12 +155,12 @@ async def choose_area_handler(callback: types.CallbackQuery, state: FSMContext):
 
     data = judgment_place
     await callback.message.answer(
-        text=f"""<b>Информация по участку №{id_district}</b>\n
-        <b>ФИО мирового судьи:</b> \n{data["fio_judgment"]}
-        <b>Телефон:</b> {data["phone"]}
-        <b>Район:</b><i>{data["district"]}</i>\n
-        """,
-        #  <b>Адрес участка:</b> {data["Адрес"]}
+        text=f"<b>Информация по участку №{id_district}\n\n</b>"
+             f""
+             f"<b>ФИО мирового судьи:</b> \n{data['fio_judgment']}"
+             f"<b>\nТелефон:</b>{data['phone']}"
+             f"<b>\nРайон:</b><i>{data['district']}</i>"
+             f"<b>\nИнформация об участке:</b>\n{data["description"]}",
         parse_mode=ParseMode.HTML,
         reply_markup=markup
     )
@@ -217,7 +219,9 @@ async def filling_fio(callback: types.CallbackQuery, state: FSMContext, bot: Bot
     id_judgement_place = callback.data
     await state.update_data(id_judgement_place=id_judgement_place)
     await callback.message.answer(
-        "Для начала введите свое ФИО"
+        "Отлично\n"
+        "Теперь вам нужно заполнить документы и отправить ответственному на проверку\n"
+        "Но для начала введите свое ФИО"
     )
     await state.set_state(PostAnketaStates.email_ask)
 
@@ -225,30 +229,31 @@ async def filling_fio(callback: types.CallbackQuery, state: FSMContext, bot: Bot
 @router.message(PostAnketaStates.email_ask)
 async def filling_email(message: types.Message, state: FSMContext, *args, **kwargs):
     fio_person = message.text
+    try:
+        surname = fio_person.split()[0]
+        name = fio_person.split()[1]
+    except:
+        await message.answer("Неккоректный ввод имени и фамилии. Введите имя, фамилию и отчество полностью через пробел")
+        await state.set_state(PostAnketaStates.email_ask)
+        return
     await state.update_data(fio_person=fio_person)
-    await message.answer("Теперь вам нужно ввести свой email")
+    await message.answer("Отлично. Теперь вам нужно ввести свой email. На основе вашего email мы найдем документы.")
     await state.set_state(PostAnketaStates.start_filling_anket)
-
-
-# @router.message(PostAnketaStates.email_confirm)
-# async def confilling_email(message: types.Message, state: FSMContext, *args, **kwargs):
-#     email_person = message.text
-#     await state.update_data(email_person=email_person)
-#     await state.set_state(PostAnketaStates.start_filling_anket)
 
 
 @router.message(PostAnketaStates.start_filling_anket)
 async def filling_anket(message: types.Message, state: FSMContext, bot: Bot, *args, **kwargs):
     email_person = message.text
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if re.match(pattern, email_person) == None:
+         await  message.answer("Неккоректный ввод почты. Введите почту в формате user@example.com")
+         return
+
     await state.update_data(email_person=email_person)
     logging.info(f"FILLING ANKET {await state.get_data()}")
 
     data = await state.get_data()
     id_judgement_place = data["id_judgement_place"]
-    # print(await state.get_data())
-    # judgment_place = services.fetch_persons_info(filters="filterByFormula={Участок}=" + id_judgement_place)
-
-    # data = judgment_place[0]['fields']
 
     await message.answer(
         text="Спасибо! После заполнения анкеты, вам необходимо заполнить следующие документы:"
@@ -275,17 +280,22 @@ async def filling_anket(message: types.Message, state: FSMContext, bot: Bot, *ar
     async with chatActionSender as action:
         await bot.send_media_group(message.chat.id, media=media_docs)
 
+    judgment_place = services.fetch_judgement_place_byid()[0]
+    inspector_fio = judgment_place.get("inspector").get("first_name")
+    inspector_email = judgment_place.get("inspector").get("email")
+
     kb = [
         [types.InlineKeyboardButton(text="Я отправил документы ответственному", callback_data=str(id_judgement_place))]
     ]
     markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
 
     await message.answer(
-        text="После заполнение документов, вам необходимо отправить их на почту ответственного по участку:"
-        # f"\n<b>ФИО ответственного:</b> {data['Сотрудник, ответственный за участок']}"
-        # f"\n<b>Почта ответственного:</b> {data['Почта']}",
-             f"\n<b>ФИО ответственного:</b> Дупленский Роман Сергеевич"
-             f"\n<b>Почта ответственного:</b> duplenskiy@zakon.gov.spb.ru",
+        text="После заполнение документов, вам необходимо отправить их на почту ответственного:"
+            f"\n<b>ФИО ответственного:</b> {inspector_fio}"
+            f"\n<b>Почта ответственного:</b> {inspector_email}"
+            "\n\nА также копию руководителю:"
+            f"\n<b>ФИО ответственного:</b> Дупленский Роман Сергеевич"
+            f"\n<b>Почта ответственного:</b> duplenskiy@zakon.gov.spb.ru",
         parse_mode=ParseMode.HTML,
         reply_markup=markup
     )
@@ -298,7 +308,7 @@ async def filling_anket(message: types.Message, state: FSMContext, bot: Bot, *ar
 async def info_about_tender(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
     # Функ создания записи кандидата
     data = await state.get_data()
-    logging.info("ВСЕ НА ДАННЫЙ МОМЕНТ  " + str(data))
+    logging.info("DATA"+str(data))
     user_id = callback.from_user.id
     logging.info(user_id)
     fio = str(data["fio_person"])
@@ -314,9 +324,10 @@ async def info_about_tender(callback: types.CallbackQuery, state: FSMContext, bo
     markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
 
     await callback.message.answer(
-        text="""Отлично!\n 
-        Ваша заявка будет рассмотрена в течении трех рабочих дней. Нажмите кнопку, чтобы получить обновленный статус вашей заявки.\n
-        """,
+        text="Отлично!\n"
+             "Ваша заявка будет рассмотрена в течении трех рабочих дней.\n\n"
+             "Важно, проверяйте статус ваших документов нажав на кнопку:\n\n"
+             "'Проверить статус заявки'",
         reply_markup=markup
     )
 
@@ -345,25 +356,26 @@ async def waiting_for_info(callback: types.CallbackQuery, state: FSMContext, bot
     # здесь будет сервис о доставлении статуса
 
     if (status == "not_read"):
-        await callback.message.answer(
-            text="""Статус вашей заявки: Не просмотрено.\n
-        Ваши документы проверяются инспектором. Проверьте статус проверки позже. 
-        """,
+        await callback.message.edit_text(
+            text="Статус вашей заявки: На рассмотрении.\n\n"
+                 "Ваши документы будут проверены инспектором в ближайшее время.\n"
+                 "Важно, проверяйте статус ваших документов нажав на кнопку:\n"
+                 "'Проверить статус заявки'",
             reply_markup=markup)
 
     if (status == "not_access"):
-        await callback.message.answer(
-            text="""Статус вашей заявки: Не были получены документы.\n
-            Документы не были посланы или была выявлена ошибка. Пожалуйста отправьте повторно.
-            """,
+        await callback.message.edit_text(
+            text="Статус вашей заявки: Не были получены.\n\n"
+                 "Документы не были получены инспектором. "
+                 "Проверьте, отправляли ли вы письмо с документами с указанной выше почты?\n\n"
+                 "Попробуйте отпрвить документы еще раз и нажмите кнопку 'Я отправил документы повторно'",
             reply_markup=markup3)
         services.resend_document_status(callback.from_user.id)
 
     if (status == "access"):
-        await callback.message.answer(
-            text="""Статус вашей заявки: Принято.\n
-        Теперь вы можете начать процесс поступления на гос службу.
-        """,
+        await callback.message.edit_text(
+            text="Статус вашей заявки: Принято в работу.\n\n"
+                 "Теперь вы можете начать процесс поступления на гос. службу.",
             reply_markup=markup2)
         await state.set_state(PostAnketaStates.user_collected_all_docs)
         return
@@ -372,13 +384,11 @@ async def waiting_for_info(callback: types.CallbackQuery, state: FSMContext, bot
 @router.callback_query(PostAnketaStates.user_collected_all_docs)
 async def filling_work_docs(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
     await callback.message.answer(
-        text="""
-        Наши поздравления!\n\nДля поступления на государственную гражданскую службу необходимо предоставить следующие документы.
-        """
-    )
+        text="Наши поздравления!\n"
+             "Для поступления на государственную гражданскую службу необходимо предоставить следующие документы.")
 
     kb = [
-        [types.InlineKeyboardButton(text="Я собрал все документы", callback_data="data")]
+        [types.InlineKeyboardButton(text="Я собрал(а) все документы", callback_data="data")]
     ]
     markup = types.InlineKeyboardMarkup(inline_keyboard=kb)
 
