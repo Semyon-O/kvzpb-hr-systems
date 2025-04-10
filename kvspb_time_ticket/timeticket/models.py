@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
-
+from candidate import models as candidate_models
 
 class TimeUserWindow(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -25,13 +25,11 @@ class TimeUserWindow(models.Model):
         )
 
 class TimeOrder(models.Model):
-    person_data = models.CharField(max_length=255, verbose_name="ФИО кандидата")
-    telegram_nickname = models.CharField(max_length=255, null=True, verbose_name="Имя в телеграмме")
-    id_judgement_place = models.IntegerField(verbose_name="Номер судебного участка")
+    person_data = models.ForeignKey(candidate_models.Candidate, on_delete=models.CASCADE, verbose_name="Кандидат", null=True)
     taken_time = models.ForeignKey(TimeUserWindow, on_delete=models.SET_NULL, null=True, verbose_name="Выбранное время")
 
     def __str__(self):
-        return f'{self.person_data} на {self.taken_time}'
+        return f'{self.taken_time}'
 
     class Meta:
         verbose_name = "Зарезервированное окно"

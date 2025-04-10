@@ -22,7 +22,8 @@ class CandidateAccess(models.Model):
         choices=(
             ('not_read', 'Не просмотрено'),
             ('access', "Документы приняты"),
-            ("not_access", "Документы не были посланы")
+            ("not_access", "Документы не были посланы"),
+            ('give_enter', "Приглашение")
         ),
         default='not_read',
         verbose_name="Статус документов"

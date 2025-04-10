@@ -9,6 +9,11 @@ from .models import TimeUserWindow
 @admin.register(models.TimeOrder)
 class TimeOrderAdmin(admin.ModelAdmin):
     raw_id_fields = ("taken_time", )
+    search_fields = [
+        'person_data__name',  # Поиск по имени кандидата
+        'person_data__surname',  # Поиск по фамилии кандидата
+        'person_data__email',  # Поиск по email кандидата
+    ]
 
     def get_queryset(self, request):
         orders = super().get_queryset(request)
@@ -28,7 +33,7 @@ class TimeOrderAdmin(admin.ModelAdmin):
         return orders.none()
 
     def get_list_display(self, request):
-        return ("person_data", "taken_time", 'id_judgement_place')
+        return ("person_data", "taken_time")
 
 @admin.register(models.TimeUserWindow)
 class TimeUserWindowAdmin(admin.ModelAdmin):
