@@ -160,7 +160,7 @@ async def choose_area_handler(callback: types.CallbackQuery, state: FSMContext):
              f"<b>ФИО мирового судьи:</b> \n{data['fio_judgment']}"
              f"<b>\nТелефон:</b>{data['phone']}"
              f"<b>\nРайон:</b><i>{data['district']}</i>"
-             f"<b>\nИнформация об участке:</b>\n{data["description"]}",
+             f"<b>\nИнформация об участке:</b>\n{data['description']}",
         parse_mode=ParseMode.HTML,
         reply_markup=markup
     )
