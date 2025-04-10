@@ -1,0 +1,14 @@
+{% extends 'admin/base_site.html' %}
+
+{% block title %}
+	Административная панель | Импорт
+{% endblock %}
+
+{% block content %}
+    <form method="post" action="{% url 'import' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_div }}
+        <p>(принимаются следующие форматы файлов: .xlsx .csv)</p>
+        <input type="submit" value="Отправить">
+    </form>
+{% endblock %}

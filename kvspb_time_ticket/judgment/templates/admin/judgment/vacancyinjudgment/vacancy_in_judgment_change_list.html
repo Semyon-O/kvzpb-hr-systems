@@ -1,0 +1,18 @@
+{% extends 'admin/change_list.html' %}
+
+{% block object-tools %}
+    <script>
+      function openPopup(url) {
+        var width = 400;  // Ширина окна
+        var height = 300; // Высота окна
+        var top = screen.height / 2 - height / 2;  // Центрирование по вертикали
+        var left = screen.width / 2 - width / 2;   // Центрирование по горизонтали
+        var params = `width=${width},height=${height},top=${top},left=${left}`;
+        window.open(url, '_blank', params);
+      }
+    </script>
+    {% if request.user.is_superuser %}
+        <a href="#" onclick="openPopup('{% url 'import_data_vacancies' %}')" class="btn btn-success float-right">Импортировать список участков мир. судей</a>
+    {% endif %}
+    {{ block.super }}
+{% endblock %}

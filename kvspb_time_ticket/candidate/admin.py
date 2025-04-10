@@ -1,0 +1,23 @@
+from django.contrib import admin
+from . import models
+# Register your models here.
+
+@admin.register(models.Candidate)
+class CandidateAdmin(admin.ModelAdmin):
+
+    list_display = ('name', 'surname', 'email')
+    search_fields = ('name', 'surname', 'email')
+
+
+@admin.register(models.CandidateAccess)
+class CandidateAccess(admin.ModelAdmin):
+
+    list_display = ('candidate', 'status')
+
+    search_fields = [
+        'candidate__name',  # Поиск по имени кандидата
+        'candidate__surname',  # Поиск по фамилии кандидата
+        'candidate__email',  # Поиск по email кандидата
+        'status',  # Поиск по статусу (если нужно)
+    ]
+    list_filter = ('status',)  # Фильтр по статусу (опционально)

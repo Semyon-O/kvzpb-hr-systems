@@ -516,7 +516,7 @@ input[type="text"]
     line-height: 1;
 }
 
-/* Might need to import more rules from:
+/* Might need to import_tools more rules from:
  * https://github.com/django/django/blob/master/django/contrib/admin/static/admin/css/responsive.css
  */
 .inline-group {

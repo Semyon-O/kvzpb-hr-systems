@@ -18,8 +18,8 @@ RUN pip install -r requirements.txt
 # copy project
 COPY . /app
 
-EXPOSE 8000
+EXPOSE 80
 
 RUN ["python", "manage.py", "migrate"]
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000", "--insecure"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:80", "--insecure"]
 

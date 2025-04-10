@@ -12,10 +12,8 @@ import texts
 from logic import komitet_path, apms_path, declaration_path
 
 
-# Включаем логирование, чтобы не пропустить важные сообщения
 logging.basicConfig(
-    filename="bot.log",
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 # Объект бота
@@ -117,6 +115,7 @@ async def answer_on_faq(callback: types.CallbackQuery):
     await callback.message.answer(
         text=faq_answer[answer_index][1]
     )
+
 
 
 async def main():
