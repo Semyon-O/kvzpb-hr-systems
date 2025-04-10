@@ -160,7 +160,7 @@ async def choose_area_handler(callback: types.CallbackQuery, state: FSMContext):
              f"<b>ФИО мирового судьи:</b> \n{data['fio_judgment']}"
              f"<b>\nТелефон:</b>{data['phone']}"
              f"<b>\nРайон:</b><i>{data['district']}</i>"
-             f"<b>\nИнформация об участке:</b>\n{data["description"]}",
+             f"<b>\nИнформация об участке:</b>\n{data['description']}",
         parse_mode=ParseMode.HTML,
         reply_markup=markup
     )
@@ -199,13 +199,13 @@ async def start_instruction(callback: types.CallbackQuery, state: FSMContext):
 
     id_judgement_place = callback.data
     kb = [
-        [types.InlineKeyboardButton(text="Авторизоваться", url="https://hr.gov.spb.ru/vakansii/?")],
+        [types.InlineKeyboardButton(text="Авторизоваться", url="https://hr.gov.spb.ru/accounts/login/?")],
         [types.InlineKeyboardButton(text="Я заполнил анкету на сайте", callback_data=id_judgement_place)],
     ]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb, resize_keyboard=True)
 
     await callback.message.answer(
-        "Для создания анкеты в комитет. Нужно зарегистрироваться или авторизоваться на сайте комитета."
+        "Для создания анкеты в Комитет. Нужно зарегистрироваться или авторизоваться на сайте Комитета."
         "\nПройдите пожалуйста, регистрацию или авторизацию. И затем заполните анкету для конкурса.\n"
         "\nЕсли вы прошли авторизацию и заполнили анкету, нажмите на кнопку '<b>Я заполнил анкету на сайте</b>'",
         reply_markup=keyboard,
@@ -291,11 +291,11 @@ async def filling_anket(message: types.Message, state: FSMContext, bot: Bot, *ar
 
     await message.answer(
         text="После заполнение документов, вам необходимо отправить их на почту ответственного:"
-            f"\n<b>ФИО ответственного:</b> {inspector_fio}"
-            f"\n<b>Почта ответственного:</b> {inspector_email}"
+            f"\n<b>🧑‍💼 ФИО ответственного:</b> {inspector_fio}"
+            f"\n<b>📧 Почта ответственного:</b> {inspector_email}"
             "\n\nА также копию руководителю:"
-            f"\n<b>ФИО ответственного:</b> Дупленский Роман Сергеевич"
-            f"\n<b>Почта ответственного:</b> duplenskiy@zakon.gov.spb.ru",
+            f"\n<b>🧑‍💼 ФИО руководителя:</b> Дупленский Роман Сергеевич"
+            f"\n<b>📧 Почта руководителя:</b> duplenskiy@zakon.gov.spb.ru",
         parse_mode=ParseMode.HTML,
         reply_markup=markup
     )
@@ -418,6 +418,10 @@ async def filling_work_docs(callback: types.CallbackQuery, state: FSMContext, bo
 @router.callback_query(BookingVisitor.start_booking)
 async def start_booking(callback: types.CallbackQuery, state: FSMContext, bot: Bot):
     await callback.message.answer(
-        "Отлично. \nТеперь вам необходимо позвонить специалисту по заполнению справки БК и направить вашу справку на проверку"
+        "Отлично. \nТеперь вам необходимо позвонить специалисту по заполнению справки БК и направить вашу справку на проверку."
+        "\n\nКонтакты специалиста для связи:"
+        "\n🧑‍💼 ФИО: Старинская Анна Сергеевна"
+        "\n📞 Телефон: 8 (812) 576-60-98"
+        "\n📧 Почта: a.starinskaya@zakon.gov.spb.ru"
     )
 
