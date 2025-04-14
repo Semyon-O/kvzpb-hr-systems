@@ -13,9 +13,16 @@ class TimeUserWindow(models.Model):
         "open": "Запись открыта"
     },)
 
+    def change_status_to_close(self):
+        self.status = "close"
+        self.save()
+
+    def change_status_to_open(self):
+        self.status = "open"
+        self.save()
+
     def __str__(self):
         return f'{self.date} с {self.time_start} до {self.time_end}'
-
 
     class Meta:
         verbose_name = "Окно времени"
@@ -25,8 +32,8 @@ class TimeUserWindow(models.Model):
         )
 
 class TimeOrder(models.Model):
-    person_data = models.ForeignKey(candidate_models.Candidate, on_delete=models.CASCADE, verbose_name="Кандидат", null=True)
-    taken_time = models.ForeignKey(TimeUserWindow, on_delete=models.SET_NULL, null=True, verbose_name="Выбранное время")
+    person_data = models.ForeignKey(candidate_models.Candidate, on_delete=models.CASCADE, verbose_name="Кандидат", null=True, related_name='time_order')
+    taken_time = models.ForeignKey(TimeUserWindow, on_delete=models.SET_NULL, null=True, verbose_name="Выбранное время", related_name='time_order')
 
     def __str__(self):
         return f'{self.taken_time}'
@@ -38,3 +45,4 @@ class TimeOrder(models.Model):
     permissions = (
         ('can_see_own_record', 'Может просматривать только свои записи'),
     )
+
