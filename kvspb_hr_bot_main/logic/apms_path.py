@@ -280,7 +280,7 @@ async def filling_anket(message: types.Message, state: FSMContext, bot: Bot, *ar
     async with chatActionSender as action:
         await bot.send_media_group(message.chat.id, media=media_docs)
 
-    judgment_place = services.fetch_judgement_place_byid()[0]
+    judgment_place = services.fetch_judgement_place_byid(filters=id_judgement_place)
     inspector_fio = judgment_place.get("inspector").get("first_name")
     inspector_email = judgment_place.get("inspector").get("email")
 

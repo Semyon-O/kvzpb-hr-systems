@@ -58,7 +58,7 @@ def post_candidate(name: str, surname: str, email: str, tgid: str):
     logging.info(response.json())
     return response.json()
 
-def fetch_judgement_place_byid(filters=""):
+def fetch_judgement_place_byid(filters):
     logging.info("ФИЛЬТРАЦИЯ" + filters)
     response = requests.get(
         socket+"/api/judgment/"
