@@ -15,6 +15,11 @@ class TimeOrderAdmin(admin.ModelAdmin):
         'person_data__email',  # Поиск по email кандидата
     ]
 
+    def save_model(self, request, obj: models.TimeOrder, form, change):
+        obj.taken_time.change_status_to_close()
+        return super().save_model(request, obj,form, change)
+
+
     def get_queryset(self, request):
         orders = super().get_queryset(request)
         if request.user.is_authenticated:

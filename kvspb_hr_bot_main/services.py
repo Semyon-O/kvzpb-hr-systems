@@ -4,7 +4,8 @@ import typing
 import cachetools
 import requests
 
-socket = "http://backend:8000"
+socket = "http://backend:80"
+
 
 # получение должностей
 def fetch_available_posts(filters="") -> typing.Dict:
