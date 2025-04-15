@@ -6,6 +6,7 @@ import requests
 
 socket = "http://backend:80"
 
+
 # получение должностей
 def fetch_available_posts(filters="") -> typing.Dict:
     response = requests.get(
@@ -81,7 +82,6 @@ def get_unique_data_by_field(field: "str", table_func) -> typing.List["str"]:
 
     return list(unique_set_list)
 
-# участки
 def fetch_judgment_places(district: "str", post: "int",):
      response = requests.get(
         socket+"/api/judgment/",
