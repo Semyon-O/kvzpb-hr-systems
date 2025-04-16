@@ -31,7 +31,7 @@ class Judgment(models.Model):
     vacancies = models.ManyToManyField(Vacancy, blank=True, through="VacancyInJudgment", verbose_name="Вакансии")
 
     def __str__(self):
-        return f'Судебный участок №{self.id_judgment}'
+        return f'Суд. участок №{self.id_judgment}'
 
     class Meta:
         verbose_name_plural = "Участки"

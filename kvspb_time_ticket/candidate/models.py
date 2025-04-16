@@ -1,5 +1,8 @@
 from django.db import models
 
+from judgment.models import Judgment
+
+
 # Create your models here.
 class Candidate(models.Model):
     name = models.CharField(max_length=255, verbose_name="Имя")
@@ -28,6 +31,7 @@ class CandidateAccess(models.Model):
         default='not_read',
         verbose_name="Статус документов"
     )
+    judgment_place = models.ForeignKey(to=Judgment, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return f"{self.candidate} ({self.status})"
