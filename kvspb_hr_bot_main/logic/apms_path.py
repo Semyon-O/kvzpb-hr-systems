@@ -314,9 +314,13 @@ async def info_about_tender(callback: types.CallbackQuery, state: FSMContext, bo
     fio = str(data["fio_person"])
     surname = fio.split()[0]
     name = fio.split()[1]
+    try:
+        last_name = fio.split()[2]
+    except Exception as e:
+        last_name = None
     logging.info("Ф= " + surname + " N = " + name)
 
-    services.post_candidate(name, surname, data["email_person"], user_id)
+    services.post_candidate(name, surname, last_name, data["email_person"], user_id)
 
     kb = [
         [types.InlineKeyboardButton(text="Проверить статус заявки", callback_data="data")]
