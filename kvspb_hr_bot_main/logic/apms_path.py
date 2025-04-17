@@ -320,7 +320,7 @@ async def info_about_tender(callback: types.CallbackQuery, state: FSMContext, bo
         last_name = None
     logging.info("Ф= " + surname + " N = " + name)
 
-    services.post_candidate(name, surname, last_name, data["email_person"], user_id)
+    services.post_candidate(name, surname, last_name, data["email_person"], user_id, data['id_judgement_place'])
 
     kb = [
         [types.InlineKeyboardButton(text="Проверить статус заявки", callback_data="data")]

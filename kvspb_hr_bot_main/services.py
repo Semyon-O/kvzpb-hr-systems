@@ -42,13 +42,14 @@ def fetch_candidate_status(tgid=""):
     logging.info(response.json())
     return response.json()
 
-def post_candidate(name: str, surname: str, last_name:str, email: str, tgid: str):
+def post_candidate(name: str, surname: str, last_name:str, email: str, tgid: str, id_judgement_place):
     data = {
         "name": name,
         "surname": surname,
         "last_name": last_name,
         "email": email,
         "telegram_id": tgid,
+        "id_judgement_place": id_judgement_place
     }
     response = requests.post(
         socket+"/api/candidate/",
