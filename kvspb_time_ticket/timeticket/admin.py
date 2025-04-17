@@ -1,8 +1,7 @@
 from django.contrib import admin
-from django.utils.html import format_html
+from . import forms
 
 from . import models
-from .models import TimeUserWindow
 
 
 # Register your models here.
@@ -14,11 +13,15 @@ class TimeOrderAdmin(admin.ModelAdmin):
         'person_data__surname',  # Поиск по фамилии кандидата
         'person_data__email',  # Поиск по email кандидата
     ]
+    list_filter = ("taken_time__user__first_name",)
+
+    @admin.display(description="Имя инспектора", ordering="taken_time__user__first_name")
+    def taken_time_user_first_name(self, obj):
+        return obj.taken_time.user.first_name if obj.taken_time and obj.taken_time.user else None
 
     def save_model(self, request, obj: models.TimeOrder, form, change):
         obj.taken_time.change_status_to_close()
         return super().save_model(request, obj,form, change)
-
 
     def get_queryset(self, request):
         orders = super().get_queryset(request)
@@ -38,12 +41,13 @@ class TimeOrderAdmin(admin.ModelAdmin):
         return orders.none()
 
     def get_list_display(self, request):
-        return ("person_data", "taken_time")
+        return ("person_data", "taken_time", 'taken_time_user_first_name')
 
 @admin.register(models.TimeUserWindow)
 class TimeUserWindowAdmin(admin.ModelAdmin):
     fields = ['date',('time_start', 'time_end'), 'status']
-    list_filter = ("date", "user__first_name", "status")
+    list_filter = ("date", "user__first_name","status")
+    form = forms.TimeUserWindowForm
 
     def save_model(self, request, obj, form, change):
         obj.user = request.user
