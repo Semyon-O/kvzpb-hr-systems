@@ -2,7 +2,6 @@ from django.contrib import admin
 from . import forms
 
 from . import models
-from .models import TimeUserWindow
 
 
 # Register your models here.

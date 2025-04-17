@@ -1,7 +1,7 @@
+from django.contrib.admin import TabularInline
 from django.db import models
 
 from judgment.models import Judgment
-
 
 # Create your models here.
 class Candidate(models.Model):
@@ -33,6 +33,10 @@ class CandidateAccess(models.Model):
         verbose_name="Статус документов"
     )
     judgment_place = models.ForeignKey(to=Judgment, on_delete=models.SET_NULL, null=True, related_name='access')
+
+    def change_status_to_give_enter(self):
+        self.status = "give_enter"
+        self.save()
 
     def __str__(self):
         return f"{self.candidate} ({self.status})"
