@@ -5,8 +5,8 @@ from . import models
 @admin.register(models.Candidate)
 class CandidateAdmin(admin.ModelAdmin):
 
-    list_display = ('name', 'surname', 'email',)
-    search_fields = ('name', 'surname', 'email')
+    list_display = ('name', 'surname', 'last_name', 'email',)
+    search_fields = ('name', 'surname', 'last_name','email')
 
 
 @admin.register(models.CandidateAccess)
