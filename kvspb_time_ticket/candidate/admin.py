@@ -12,7 +12,7 @@ class CandidateAdmin(admin.ModelAdmin):
 @admin.register(models.CandidateAccess)
 class CandidateAccess(admin.ModelAdmin):
 
-    list_display = ('candidate', 'judgment_place', 'judgment_place__inspector__first_name', 'status')
+    list_display = ('candidate', 'judgment_place', 'judgment_place__inspector__first_name', 'status', 'message_to_candidate')
 
     search_fields = [
         'candidate__name',  # Поиск по имени кандидата

@@ -14,13 +14,10 @@ class CandidateSerializer(serializers.ModelSerializer):
 
 
     def create(self, validated_data):
-        # Извлекаем id_judgement_place и удаляем его из данных кандидата
         id_judgement_place = validated_data.pop('id_judgement_place', None)
 
-        # Создаем кандидата
         candidate = Candidate.objects.create(**validated_data)
 
-        # Получаем объект Judgment по id (если передан)
         judgment_place = None
         if id_judgement_place:
             judgment_place = Judgment.objects.get(id_judgment=id_judgement_place)
@@ -36,4 +33,5 @@ class CandidateAccessSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CandidateAccess
-        fields = ('candidate', 'status')
+        fields = ('candidate', 'status', 'message_to_candidate')
+        read_only_fields = ('message_to_candidate',)

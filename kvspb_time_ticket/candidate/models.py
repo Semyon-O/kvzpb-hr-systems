@@ -33,6 +33,7 @@ class CandidateAccess(models.Model):
         verbose_name="Статус документов"
     )
     judgment_place = models.ForeignKey(to=Judgment, on_delete=models.SET_NULL, null=True, related_name='access')
+    message_to_candidate = models.CharField(max_length=300, verbose_name='Сообщение кандидату', null=True, blank=True)
 
     def change_status_to_give_enter(self):
         self.status = "give_enter"
