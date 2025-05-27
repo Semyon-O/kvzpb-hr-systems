@@ -19,7 +19,6 @@ https://github.com/Semyon-O/kvzpb-hr-systems/blob/main/kvspb_hr_bot_main/service
 ```
 # bot.env
 TG_TOKEN="СЮДА НЕОБХОДИМО ВСТАВИТЬ ТОКЕН ТГ БОТА"
-AIRTABLE_TOKEN="ТОКЕН AIRTABLE"
 ```
 3. После создания файла. Необходимо запустить докер клиент. Если его нету, то нужно скачать https://www.docker.com/
 4. Далее необходимо запустить команду `docker-compose up --build`, данная команда запустить сервис. 
