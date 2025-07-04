@@ -1,3 +1,5 @@
+import os
+
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db import IntegrityError
@@ -87,7 +89,12 @@ class ImportVacanciesInJudgmentView(View):
         try:
             if form.is_valid():
                 file_to_upload = request.FILES['file_to_upload']
-                import_context = format_imports.ImportContext(import_format=format_imports.CSVFormatImport())
+                extension = os.path.splitext(file_to_upload.name)[1].lower()
+                format_contexts = {
+                    ".csv": format_imports.CSVFormatImport(),
+                    ".xlsx": format_imports.ExcelFormatImport(),
+                }
+                import_context = format_imports.ImportContext(import_format=format_contexts.get(extension))
 
                 data = import_context.import_data_from_file(file_to_upload)
                 self.__insert_data_to_models(data)
